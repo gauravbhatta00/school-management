@@ -42,7 +42,8 @@ def make_user(school, email, role, password="Test@1234"):
 
 def make_student(school, user=None):
     if user is None:
-        user = make_user(school, f"student{School.objects.count()}@test.com", "student")
+        # Use current User count to avoid duplicate emails when multiple schools
+        user = make_user(school, f"student{User.objects.count()}@test.com", "student")
     s, _ = Student.objects.get_or_create(
         user=user,
         defaults={

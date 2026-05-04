@@ -78,7 +78,10 @@ class ResultViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated(), IsAdminOrTeacher()]
         if self.action in ['class_summary']:
             return [IsAuthenticated(), IsAdminOrTeacher()]
-        return [IsAuthenticated(), (IsAdminOrTeacher() | IsStudent())]
+        # Allow either admin/teacher OR student to access student-card endpoints
+        from apps.accounts.permissions import AnyOf
+
+        return [IsAuthenticated(), AnyOf(IsAdminOrTeacher, IsStudent)]
 
     def perform_create(self, serializer):
         serializer.save(school=self.request.user.school)
