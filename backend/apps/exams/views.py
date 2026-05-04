@@ -18,7 +18,6 @@ from .serializers import (
     ExamSerializer,
     SubjectSerializer,
     ResultSerializer,
-    StudentResultSummarySerializer,
 )
 from apps.accounts.permissions import IsAdminOrTeacher, IsSchoolAdmin, IsStudent
 

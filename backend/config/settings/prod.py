@@ -2,12 +2,16 @@
 Production settings - secure defaults, PostgreSQL, WhiteNoise for static files.
 """
 
+from decouple import config
+
 from .base import *
 
 DEBUG = False
 
 ALLOWED_HOSTS = config(
-    "ALLOWED_HOSTS", default="", cast=lambda v: [s.strip() for s in v.split(",")]
+    "ALLOWED_HOSTS",
+    default="",
+    cast=lambda v: [s.strip() for s in v.split(",")],
 )
 
 DATABASES = {
@@ -35,14 +39,19 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "format": (
+                "{levelname} {asctime} {module} {process:d} "
+                "{thread:d} {message}"
+            ),
             "style": "{",
         },
     },

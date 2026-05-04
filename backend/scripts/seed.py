@@ -15,19 +15,21 @@ Creates:
 import os
 import django
 import sys
+import decimal
+import random
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from django.utils import timezone
-from apps.schools.models import School
-from apps.accounts.models import User
-from apps.students.models import Student
-from apps.teachers.models import Teacher
-from apps.attendance.models import Attendance
-from apps.exams.models import Exam, Subject, Result
-from apps.fees.models import FeeStructure, Payment
+from apps.schools.models import School  # noqa: E402
+from apps.accounts.models import User  # noqa: E402
+from apps.students.models import Student  # noqa: E402
+from apps.teachers.models import Teacher  # noqa: E402
+from apps.attendance.models import Attendance  # noqa: E402
+from apps.exams.models import Exam, Result, Subject  # noqa: E402
+from apps.fees.models import FeeStructure, Payment  # noqa: E402
 
 print("🌱 Seeding demo data...")
 
@@ -82,7 +84,7 @@ for fname, lname, subject in teacher_data:
         user=user,
         defaults={"school": school, "subject": subject, "experience_years": 5},
     )
-print(f"  ✅ 3 Teachers created (password: Teacher@123)")
+print("  ✅ 3 Teachers created (password: Teacher@123)")
 
 # ── Students ─────────────────────────────────────────────────────────────────
 student_data = [
@@ -130,13 +132,14 @@ for cls, amount in [("8", 15000), ("9", 18000), ("10", 20000)]:
         school=school,
         class_name=cls,
         academic_year="2024-25",
-        defaults={"amount": amount, "description": f"Annual fee for Class {cls}"},
+        defaults={
+            "amount": amount,
+            "description": f"Annual fee for Class {cls}",
+        },
     )
-print(f"  ✅ Fee structures created")
+print("  ✅ Fee structures created")
 
 # ── Sample Payments ───────────────────────────────────────────────────────────
-import random
-
 for student in students[:6]:
     fs = FeeStructure.objects.filter(
         school=school, class_name=student.class_name
@@ -154,7 +157,7 @@ for student in students[:6]:
                 "created_by": admin_user,
             },
         )
-print(f"  ✅ Sample payments created")
+print("  ✅ Sample payments created")
 
 # ── Exams & Subjects ──────────────────────────────────────────────────────────
 midterm, _ = Exam.objects.get_or_create(
@@ -166,13 +169,14 @@ midterm, _ = Exam.objects.get_or_create(
 subjects = {}
 for name, code in [("Mathematics", "MATH"), ("Science", "SCI"), ("English", "ENG")]:
     subj, _ = Subject.objects.get_or_create(
-        school=school, name=name, class_name="10", defaults={"code": code}
+        school=school,
+        name=name,
+        class_name="10",
+        defaults={"code": code},
     )
     subjects[name] = subj
 
 # Results for class 10 students
-import decimal
-
 for student in [s for s in students if s.class_name == "10"]:
     for subj_name, subj in subjects.items():
         Result.objects.get_or_create(
@@ -185,7 +189,7 @@ for student in [s for s in students if s.class_name == "10"]:
                 "max_marks": 100,
             },
         )
-print(f"  ✅ Exams, subjects & results seeded")
+print("  ✅ Exams, subjects & results seeded")
 
 # ── Today's Attendance ────────────────────────────────────────────────────────
 today = timezone.now().date()
@@ -197,7 +201,7 @@ for i, student in enumerate(students):
         date=today,
         defaults={"status": att_status, "marked_by": admin_user},
     )
-print(f"  ✅ Today's attendance marked")
+print("  ✅ Today's attendance marked")
 
 print("\n🎉 Seed complete!")
 print("\n📋 Login credentials:")

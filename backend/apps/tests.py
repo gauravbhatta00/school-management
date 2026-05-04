@@ -5,21 +5,19 @@ Run: python manage.py test apps
   or: pytest
 """
 
-from django.test import TestCase
-from django.urls import reverse
-from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
+from rest_framework.test import APITestCase
+from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
 
-from apps.schools.models import School
 from apps.accounts.models import User
-from apps.students.models import Student
-from apps.teachers.models import Teacher
 from apps.attendance.models import Attendance
 from apps.exams.models import Exam, Subject, Result
 from apps.fees.models import FeeStructure, Payment
 from apps.applications.models import Application
+from apps.schools.models import School
+from apps.students.models import Student
 
 
 # ── Fixtures / helpers ────────────────────────────────────────────────────────

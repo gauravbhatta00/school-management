@@ -1,0 +1,16 @@
+[flake8]
+exclude = .venv
+max-line-length = 140
+per-file-ignores =
+    config/settings/base.py:E402
+    config/settings/__init__.py:F401,F403
+    config/settings/dev.py:F403,F405
+    config/settings/prod.py:F401,F403
+    scripts/seed.py:E402
+    apps/tests.py:F401
+    apps/accounts/views.py:F401
+    apps/attendance/views.py:F401
+    apps/exams/models.py:F401
+    apps/exams/serializers.py:F401
+    apps/fees/serializers.py:F401
+    apps/schools/views.py:F401
