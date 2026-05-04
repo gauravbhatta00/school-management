@@ -6,32 +6,80 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0001_initial'),
-        ('students', '0001_initial'),
+        ("schools", "0001_initial"),
+        ("students", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Attendance',
+            name="Attendance",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField()),
-                ('status', models.CharField(choices=[('present', 'Present'), ('absent', 'Absent'), ('leave', 'Leave')], default='present', max_length=10)),
-                ('remarks', models.CharField(blank=True, max_length=200)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('marked_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='marked_attendance', to=settings.AUTH_USER_MODEL)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_records', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_records', to='students.student')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("present", "Present"),
+                            ("absent", "Absent"),
+                            ("leave", "Leave"),
+                        ],
+                        default="present",
+                        max_length=10,
+                    ),
+                ),
+                ("remarks", models.CharField(blank=True, max_length=200)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "marked_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="marked_attendance",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attendance_records",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attendance_records",
+                        to="students.student",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'attendance_attendance',
-                'indexes': [models.Index(fields=['school', 'date'], name='attendance__school__66644e_idx'), models.Index(fields=['student', 'date'], name='attendance__student_76a8d7_idx')],
-                'unique_together': {('student', 'date')},
+                "db_table": "attendance_attendance",
+                "indexes": [
+                    models.Index(
+                        fields=["school", "date"], name="attendance__school__66644e_idx"
+                    ),
+                    models.Index(
+                        fields=["student", "date"],
+                        name="attendance__student_76a8d7_idx",
+                    ),
+                ],
+                "unique_together": {("student", "date")},
             },
         ),
     ]

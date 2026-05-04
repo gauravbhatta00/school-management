@@ -16,8 +16,8 @@ class SchoolMiddleware:
         # Attach school from authenticated user (if any).
         # JWTAuthentication runs later in DRF, so we do a lightweight check.
         request.school = None
-        if hasattr(request, 'user') and request.user.is_authenticated:
-            request.school = getattr(request.user, 'school', None)
+        if hasattr(request, "user") and request.user.is_authenticated:
+            request.school = getattr(request.user, "school", None)
 
         response = self.get_response(request)
         return response

@@ -11,37 +11,35 @@ from django.db import models
 
 class Attendance(models.Model):
     class Status(models.TextChoices):
-        PRESENT = 'present', 'Present'
-        ABSENT = 'absent', 'Absent'
-        LEAVE = 'leave', 'Leave'
+        PRESENT = "present", "Present"
+        ABSENT = "absent", "Absent"
+        LEAVE = "leave", "Leave"
 
     school = models.ForeignKey(
-        'schools.School',
-        on_delete=models.CASCADE,
-        related_name='attendance_records'
+        "schools.School", on_delete=models.CASCADE, related_name="attendance_records"
     )
     student = models.ForeignKey(
-        'students.Student',
-        on_delete=models.CASCADE,
-        related_name='attendance_records'
+        "students.Student", on_delete=models.CASCADE, related_name="attendance_records"
     )
     date = models.DateField()
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PRESENT)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PRESENT
+    )
     remarks = models.CharField(max_length=200, blank=True)
     marked_by = models.ForeignKey(
-        'accounts.User',
+        "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
-        related_name='marked_attendance'
+        related_name="marked_attendance",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'attendance_attendance'
-        unique_together = [('student', 'date')]
+        db_table = "attendance_attendance"
+        unique_together = [("student", "date")]
         indexes = [
-            models.Index(fields=['school', 'date']),
-            models.Index(fields=['student', 'date']),
+            models.Index(fields=["school", "date"]),
+            models.Index(fields=["student", "date"]),
         ]
 
     def __str__(self):
@@ -50,37 +48,39 @@ class Attendance(models.Model):
 
 class TeacherAttendance(models.Model):
     class Status(models.TextChoices):
-        PRESENT = 'present', 'Present'
-        ABSENT = 'absent', 'Absent'
-        LEAVE = 'leave', 'Leave'
+        PRESENT = "present", "Present"
+        ABSENT = "absent", "Absent"
+        LEAVE = "leave", "Leave"
 
     school = models.ForeignKey(
-        'schools.School',
+        "schools.School",
         on_delete=models.CASCADE,
-        related_name='teacher_attendance_records'
+        related_name="teacher_attendance_records",
     )
     teacher = models.ForeignKey(
-        'accounts.User',
+        "accounts.User",
         on_delete=models.CASCADE,
-        related_name='teacher_attendance_entries'
+        related_name="teacher_attendance_entries",
     )
     date = models.DateField()
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PRESENT)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PRESENT
+    )
     remarks = models.CharField(max_length=200, blank=True)
     marked_by = models.ForeignKey(
-        'accounts.User',
+        "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
-        related_name='marked_teacher_attendance'
+        related_name="marked_teacher_attendance",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'attendance_teacherattendance'
-        unique_together = [('teacher', 'date')]
+        db_table = "attendance_teacherattendance"
+        unique_together = [("teacher", "date")]
         indexes = [
-            models.Index(fields=['school', 'date']),
-            models.Index(fields=['teacher', 'date']),
+            models.Index(fields=["school", "date"]),
+            models.Index(fields=["teacher", "date"]),
         ]
 
     def __str__(self):

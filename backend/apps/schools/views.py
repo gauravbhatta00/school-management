@@ -10,10 +10,11 @@ class SchoolViewSet(viewsets.ModelViewSet):
     Superusers see all schools; school admins see only their own.
     Only Django superusers can CREATE new schools (platform-level action).
     """
+
     serializer_class = SchoolSerializer
 
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action == "create":
             return [IsAdminUser()]
         return [IsAuthenticated()]
 

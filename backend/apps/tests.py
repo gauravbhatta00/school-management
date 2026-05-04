@@ -24,6 +24,7 @@ from apps.applications.models import Application
 
 # ── Fixtures / helpers ────────────────────────────────────────────────────────
 
+
 def make_school(name="Test School"):
     return School.objects.create(name=name, contact="1234567890")
 
@@ -58,6 +59,7 @@ def make_student(school, user=None):
 
 # ── User Model Tests ──────────────────────────────────────────────────────────
 
+
 class UserModelTests(TestCase):
     def setUp(self):
         self.school = make_school()
@@ -68,7 +70,7 @@ class UserModelTests(TestCase):
         self.assertTrue(user.is_active)
 
     def test_role_properties(self):
-        admin   = make_user(self.school, "a@t.com", "admin")
+        admin = make_user(self.school, "a@t.com", "admin")
         teacher = make_user(self.school, "b@t.com", "teacher")
         student = make_user(self.school, "c@t.com", "student")
 
@@ -93,25 +95,32 @@ class UserModelTests(TestCase):
 
 # ── Auth API Tests ────────────────────────────────────────────────────────────
 
+
 class AuthAPITests(APITestCase):
     def setUp(self):
         self.school = make_school()
-        self.admin  = make_user(self.school, "admin@t.com", "admin")
+        self.admin = make_user(self.school, "admin@t.com", "admin")
 
     def test_login_returns_tokens(self):
-        resp = self.client.post("/api/auth/jwt/create/", {
-            "email": "admin@t.com",
-            "password": "Test@1234",
-        })
+        resp = self.client.post(
+            "/api/auth/jwt/create/",
+            {
+                "email": "admin@t.com",
+                "password": "Test@1234",
+            },
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn("access",  resp.data)
+        self.assertIn("access", resp.data)
         self.assertIn("refresh", resp.data)
 
     def test_login_wrong_password(self):
-        resp = self.client.post("/api/auth/jwt/create/", {
-            "email": "admin@t.com",
-            "password": "wrongpassword",
-        })
+        resp = self.client.post(
+            "/api/auth/jwt/create/",
+            {
+                "email": "admin@t.com",
+                "password": "wrongpassword",
+            },
+        )
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_me_endpoint_requires_auth(self):
@@ -123,10 +132,11 @@ class AuthAPITests(APITestCase):
         resp = self.client.get("/api/users/me/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["email"], "admin@t.com")
-        self.assertEqual(resp.data["role"],  "admin")
+        self.assertEqual(resp.data["role"], "admin")
 
 
 # ── Multi-Tenancy Tests ───────────────────────────────────────────────────────
+
 
 class MultiTenancyTests(APITestCase):
     """Ensure users cannot see data from other schools."""
@@ -161,10 +171,11 @@ class MultiTenancyTests(APITestCase):
 
 # ── Student CRUD Tests ────────────────────────────────────────────────────────
 
+
 class StudentAPITests(APITestCase):
     def setUp(self):
         self.school = make_school()
-        self.admin  = make_user(self.school, "admin@s.com", "admin")
+        self.admin = make_user(self.school, "admin@s.com", "admin")
         self.teacher = make_user(self.school, "teacher@s.com", "teacher")
 
         # Create a user to attach student profile to
@@ -196,32 +207,40 @@ class StudentAPITests(APITestCase):
 
     def test_update_student_as_admin(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.patch(f"/api/students/{self.student.id}/", {
-            "class_name": "11",
-            "section": "B",
-            "roll_number": "001",
-        })
+        resp = self.client.patch(
+            f"/api/students/{self.student.id}/",
+            {
+                "class_name": "11",
+                "section": "B",
+                "roll_number": "001",
+            },
+        )
         self.assertEqual(resp.status_code, 200)
 
 
 # ── Attendance Tests ──────────────────────────────────────────────────────────
 
+
 class AttendanceTests(APITestCase):
     def setUp(self):
-        self.school  = make_school()
-        self.admin   = make_user(self.school, "admin@att.com", "admin")
+        self.school = make_school()
+        self.admin = make_user(self.school, "admin@att.com", "admin")
         self.teacher = make_user(self.school, "teacher@att.com", "teacher")
         self.stu_user = make_user(self.school, "stu@att.com", "student")
         self.student = make_student(self.school, self.stu_user)
 
     def test_bulk_mark_attendance(self):
         self.client.force_authenticate(user=self.teacher)
-        resp = self.client.post("/api/attendance/bulk-mark/", {
-            "date": str(timezone.now().date()),
-            "records": [
-                {"student_id": self.student.id, "status": "present"},
-            ],
-        }, format="json")
+        resp = self.client.post(
+            "/api/attendance/bulk-mark/",
+            {
+                "date": str(timezone.now().date()),
+                "records": [
+                    {"student_id": self.student.id, "status": "present"},
+                ],
+            },
+            format="json",
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.data["total"], 1)
 
@@ -241,25 +260,32 @@ class AttendanceTests(APITestCase):
     def test_attendance_report(self):
         self.client.force_authenticate(user=self.admin)
         Attendance.objects.create(
-            school=self.school, student=self.student,
-            date=timezone.now().date(), status="present", marked_by=self.admin,
+            school=self.school,
+            student=self.student,
+            date=timezone.now().date(),
+            status="present",
+            marked_by=self.admin,
         )
         resp = self.client.get("/api/attendance/report/?class_name=10&section=A")
         self.assertEqual(resp.status_code, 200)
         self.assertIsInstance(resp.data, list)
 
     def test_bulk_mark_rejects_other_school_student(self):
-        other_school  = make_school("Other")
+        other_school = make_school("Other")
         other_stu_usr = make_user(other_school, "o@o.com", "student")
         other_student = make_student(other_school, other_stu_usr)
         other_student.roll_number = "099"
         other_student.save()
 
         self.client.force_authenticate(user=self.teacher)
-        resp = self.client.post("/api/attendance/bulk-mark/", {
-            "date": str(timezone.now().date()),
-            "records": [{"student_id": other_student.id, "status": "present"}],
-        }, format="json")
+        resp = self.client.post(
+            "/api/attendance/bulk-mark/",
+            {
+                "date": str(timezone.now().date()),
+                "records": [{"student_id": other_student.id, "status": "present"}],
+            },
+            format="json",
+        )
         self.assertEqual(resp.status_code, 400)
 
     def test_leave_application_approval_marks_attendance_as_leave(self):
@@ -359,40 +385,58 @@ class AttendanceTests(APITestCase):
 
 # ── Exam / Result Tests ───────────────────────────────────────────────────────
 
+
 class ExamTests(APITestCase):
     def setUp(self):
-        self.school  = make_school()
-        self.admin   = make_user(self.school, "admin@ex.com", "admin")
+        self.school = make_school()
+        self.admin = make_user(self.school, "admin@ex.com", "admin")
         self.stu_usr = make_user(self.school, "stu@ex.com", "student")
         self.student = make_student(self.school, self.stu_usr)
-        self.exam    = Exam.objects.create(school=self.school, name="Midterm", academic_year="2024-25")
-        self.subject = Subject.objects.create(school=self.school, name="Math", code="MATH", class_name="10")
+        self.exam = Exam.objects.create(
+            school=self.school, name="Midterm", academic_year="2024-25"
+        )
+        self.subject = Subject.objects.create(
+            school=self.school, name="Math", code="MATH", class_name="10"
+        )
 
     def test_create_exam(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.post("/api/exams/", {
-            "name": "Final Exam", "academic_year": "2024-25",
-        })
+        resp = self.client.post(
+            "/api/exams/",
+            {
+                "name": "Final Exam",
+                "academic_year": "2024-25",
+            },
+        )
         self.assertEqual(resp.status_code, 201)
 
     def test_add_result(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.post("/api/results/", {
-            "student":        self.student.id,
-            "exam":           self.exam.id,
-            "subject":        self.subject.id,
-            "marks_obtained": 85,
-            "max_marks":      100,
-        })
+        resp = self.client.post(
+            "/api/results/",
+            {
+                "student": self.student.id,
+                "exam": self.exam.id,
+                "subject": self.subject.id,
+                "marks_obtained": 85,
+                "max_marks": 100,
+            },
+        )
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp.data["grade"], "A")
 
     def test_marks_cannot_exceed_max(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.post("/api/results/", {
-            "student": self.student.id, "exam": self.exam.id,
-            "subject": self.subject.id, "marks_obtained": 110, "max_marks": 100,
-        })
+        resp = self.client.post(
+            "/api/results/",
+            {
+                "student": self.student.id,
+                "exam": self.exam.id,
+                "subject": self.subject.id,
+                "marks_obtained": 110,
+                "max_marks": 100,
+            },
+        )
         self.assertEqual(resp.status_code, 400)
 
     def test_result_percentage_property(self):
@@ -401,18 +445,29 @@ class ExamTests(APITestCase):
 
     def test_grade_boundaries(self):
         cases = [
-            (95, "A+"), (85, "A"), (75, "B"),
-            (65, "C"), (55, "D"), (40, "F"),
+            (95, "A+"),
+            (85, "A"),
+            (75, "B"),
+            (65, "C"),
+            (55, "D"),
+            (40, "F"),
         ]
         for marks, expected_grade in cases:
             r = Result(marks_obtained=marks, max_marks=100)
-            self.assertEqual(r.compute_grade(), expected_grade,
-                             msg=f"{marks} should be {expected_grade}")
+            self.assertEqual(
+                r.compute_grade(),
+                expected_grade,
+                msg=f"{marks} should be {expected_grade}",
+            )
 
     def test_student_card_endpoint(self):
         Result.objects.create(
-            school=self.school, student=self.student, exam=self.exam,
-            subject=self.subject, marks_obtained=78, max_marks=100,
+            school=self.school,
+            student=self.student,
+            exam=self.exam,
+            subject=self.subject,
+            marks_obtained=78,
+            max_marks=100,
         )
         self.client.force_authenticate(user=self.admin)
         resp = self.client.get(
@@ -425,51 +480,67 @@ class ExamTests(APITestCase):
 
 # ── Fee Tests ─────────────────────────────────────────────────────────────────
 
+
 class FeeTests(APITestCase):
     def setUp(self):
-        self.school    = make_school()
-        self.admin     = make_user(self.school, "admin@fee.com", "admin")
-        self.stu_usr   = make_user(self.school, "stu@fee.com", "student")
-        self.student   = make_student(self.school, self.stu_usr)
+        self.school = make_school()
+        self.admin = make_user(self.school, "admin@fee.com", "admin")
+        self.stu_usr = make_user(self.school, "stu@fee.com", "student")
+        self.student = make_student(self.school, self.stu_usr)
         self.structure = FeeStructure.objects.create(
             school=self.school, class_name="10", amount=20000, academic_year="2024-25"
         )
 
     def test_create_fee_structure(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.post("/api/fee-structures/", {
-            "class_name": "9", "amount": 18000, "academic_year": "2024-25",
-        })
+        resp = self.client.post(
+            "/api/fee-structures/",
+            {
+                "class_name": "9",
+                "amount": 18000,
+                "academic_year": "2024-25",
+            },
+        )
         self.assertEqual(resp.status_code, 201)
 
     def test_pay_full_fee(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.post("/api/payments/pay/", {
-            "student_id":       self.student.id,
-            "fee_structure_id": self.structure.id,
-            "amount":           20000,
-            "payment_method":   "online",
-        })
+        resp = self.client.post(
+            "/api/payments/pay/",
+            {
+                "student_id": self.student.id,
+                "fee_structure_id": self.structure.id,
+                "amount": 20000,
+                "payment_method": "online",
+            },
+        )
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp.data["status"], "paid")
 
     def test_partial_payment_status(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.post("/api/payments/pay/", {
-            "student_id":       self.student.id,
-            "fee_structure_id": self.structure.id,
-            "amount":           10000,
-            "payment_method":   "cash",
-        })
+        resp = self.client.post(
+            "/api/payments/pay/",
+            {
+                "student_id": self.student.id,
+                "fee_structure_id": self.structure.id,
+                "amount": 10000,
+                "payment_method": "cash",
+            },
+        )
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp.data["status"], "partial")
 
     def test_student_fee_status(self):
         Payment.objects.create(
-            school=self.school, student=self.student,
-            fee_structure=self.structure, amount=20000,
-            status="paid", payment_method="cash",
-            payment_date=timezone.now().date(), created_by=self.admin,
+            school=self.school,
+            student=self.student,
+            fee_structure=self.structure,
+            amount=20000,
+            status="paid",
+            payment_method="cash",
+            payment_date=timezone.now().date(),
+            created_by=self.admin,
         )
         self.client.force_authenticate(user=self.admin)
         resp = self.client.get(
@@ -481,18 +552,21 @@ class FeeTests(APITestCase):
 
     def test_collection_summary(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.get("/api/payments/collection-summary/?academic_year=2024-25")
+        resp = self.client.get(
+            "/api/payments/collection-summary/?academic_year=2024-25"
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertIn("total_collected", resp.data)
 
 
 # ── Permission Boundary Tests ─────────────────────────────────────────────────
 
+
 class PermissionTests(APITestCase):
     def setUp(self):
-        self.school   = make_school()
-        self.admin    = make_user(self.school, "adm@p.com", "admin")
-        self.teacher  = make_user(self.school, "tch@p.com", "teacher")
+        self.school = make_school()
+        self.admin = make_user(self.school, "adm@p.com", "admin")
+        self.teacher = make_user(self.school, "tch@p.com", "teacher")
         self.stu_user = make_user(self.school, "stu@p.com", "student")
 
     def test_student_cannot_access_teachers(self):
@@ -502,7 +576,7 @@ class PermissionTests(APITestCase):
 
     def test_teacher_cannot_delete_student(self):
         stu_u = make_user(self.school, "del@p.com", "student")
-        stu   = make_student(self.school, stu_u)
+        stu = make_student(self.school, stu_u)
         self.client.force_authenticate(user=self.teacher)
         resp = self.client.delete(f"/api/students/{stu.id}/")
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)

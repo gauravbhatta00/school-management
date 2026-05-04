@@ -6,31 +6,57 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0001_initial'),
+        ("schools", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Teacher',
+            name="Teacher",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('subject', models.CharField(blank=True, max_length=100)),
-                ('qualification', models.CharField(blank=True, max_length=200)),
-                ('experience_years', models.PositiveSmallIntegerField(default=0)),
-                ('joining_date', models.DateField(auto_now_add=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='teachers', to='schools.school')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='teacher_profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("subject", models.CharField(blank=True, max_length=100)),
+                ("qualification", models.CharField(blank=True, max_length=200)),
+                ("experience_years", models.PositiveSmallIntegerField(default=0)),
+                ("joining_date", models.DateField(auto_now_add=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="teachers",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="teacher_profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'db_table': 'teachers_teacher',
-                'indexes': [models.Index(fields=['school', 'subject'], name='teachers_te_school__e5d1bf_idx')],
+                "db_table": "teachers_teacher",
+                "indexes": [
+                    models.Index(
+                        fields=["school", "subject"],
+                        name="teachers_te_school__e5d1bf_idx",
+                    )
+                ],
             },
         ),
     ]

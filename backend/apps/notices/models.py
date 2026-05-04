@@ -4,7 +4,9 @@ from django.utils import timezone
 
 
 class Notice(models.Model):
-    school = models.ForeignKey('schools.School', on_delete=models.CASCADE, related_name='notices')
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="notices"
+    )
     title = models.CharField(max_length=255)
     message = models.TextField()
     is_published = models.BooleanField(default=True)
@@ -14,16 +16,16 @@ class Notice(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='created_notices',
+        related_name="created_notices",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-published_at', '-created_at']
+        ordering = ["-published_at", "-created_at"]
         indexes = [
-            models.Index(fields=['school', 'is_published']),
-            models.Index(fields=['school', 'published_at']),
+            models.Index(fields=["school", "is_published"]),
+            models.Index(fields=["school", "published_at"]),
         ]
 
     def __str__(self):
@@ -32,16 +34,20 @@ class Notice(models.Model):
 
 class CalendarEvent(models.Model):
     class EventType(models.TextChoices):
-        EXAM = 'exam', 'Exam'
-        HOLIDAY = 'holiday', 'Holiday'
-        MEETING = 'meeting', 'Meeting'
-        ACTIVITY = 'activity', 'Activity'
-        OTHER = 'other', 'Other'
+        EXAM = "exam", "Exam"
+        HOLIDAY = "holiday", "Holiday"
+        MEETING = "meeting", "Meeting"
+        ACTIVITY = "activity", "Activity"
+        OTHER = "other", "Other"
 
-    school = models.ForeignKey('schools.School', on_delete=models.CASCADE, related_name='calendar_events')
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="calendar_events"
+    )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    event_type = models.CharField(max_length=20, choices=EventType.choices, default=EventType.OTHER)
+    event_type = models.CharField(
+        max_length=20, choices=EventType.choices, default=EventType.OTHER
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     created_by = models.ForeignKey(
@@ -49,17 +55,17 @@ class CalendarEvent(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='created_calendar_events',
+        related_name="created_calendar_events",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['start_date', 'title']
+        ordering = ["start_date", "title"]
         indexes = [
-            models.Index(fields=['school', 'start_date']),
-            models.Index(fields=['school', 'end_date']),
-            models.Index(fields=['school', 'event_type']),
+            models.Index(fields=["school", "start_date"]),
+            models.Index(fields=["school", "end_date"]),
+            models.Index(fields=["school", "event_type"]),
         ]
 
     def __str__(self):

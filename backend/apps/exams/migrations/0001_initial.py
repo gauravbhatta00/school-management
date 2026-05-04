@@ -6,66 +6,151 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0001_initial'),
-        ('students', '0001_initial'),
+        ("schools", "0001_initial"),
+        ("students", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Exam',
+            name="Exam",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('description', models.TextField(blank=True)),
-                ('start_date', models.DateField(blank=True, null=True)),
-                ('end_date', models.DateField(blank=True, null=True)),
-                ('academic_year', models.CharField(default='2024-25', max_length=20)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='exams', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("description", models.TextField(blank=True)),
+                ("start_date", models.DateField(blank=True, null=True)),
+                ("end_date", models.DateField(blank=True, null=True)),
+                ("academic_year", models.CharField(default="2024-25", max_length=20)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="exams",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'exams_exam',
-                'unique_together': {('school', 'name', 'academic_year')},
+                "db_table": "exams_exam",
+                "unique_together": {("school", "name", "academic_year")},
             },
         ),
         migrations.CreateModel(
-            name='Subject',
+            name="Subject",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('code', models.CharField(blank=True, max_length=20)),
-                ('class_name', models.CharField(blank=True, max_length=20)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subjects', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("code", models.CharField(blank=True, max_length=20)),
+                ("class_name", models.CharField(blank=True, max_length=20)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="subjects",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'exams_subject',
-                'unique_together': {('school', 'name', 'class_name')},
+                "db_table": "exams_subject",
+                "unique_together": {("school", "name", "class_name")},
             },
         ),
         migrations.CreateModel(
-            name='Result',
+            name="Result",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('marks_obtained', models.DecimalField(decimal_places=2, max_digits=6, validators=[django.core.validators.MinValueValidator(0)])),
-                ('max_marks', models.DecimalField(decimal_places=2, default=100, max_digits=6, validators=[django.core.validators.MinValueValidator(1)])),
-                ('grade', models.CharField(blank=True, max_length=5)),
-                ('remarks', models.CharField(blank=True, max_length=200)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('exam', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='exams.exam')),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='students.student')),
-                ('subject', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results', to='exams.subject')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "marks_obtained",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=6,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
+                (
+                    "max_marks",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=100,
+                        max_digits=6,
+                        validators=[django.core.validators.MinValueValidator(1)],
+                    ),
+                ),
+                ("grade", models.CharField(blank=True, max_length=5)),
+                ("remarks", models.CharField(blank=True, max_length=200)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "exam",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="results",
+                        to="exams.exam",
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="results",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="results",
+                        to="students.student",
+                    ),
+                ),
+                (
+                    "subject",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="results",
+                        to="exams.subject",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'exams_result',
-                'indexes': [models.Index(fields=['school', 'exam', 'student'], name='exams_resul_school__89ea09_idx')],
-                'unique_together': {('student', 'exam', 'subject')},
+                "db_table": "exams_result",
+                "indexes": [
+                    models.Index(
+                        fields=["school", "exam", "student"],
+                        name="exams_resul_school__89ea09_idx",
+                    )
+                ],
+                "unique_together": {("student", "exam", "subject")},
             },
         ),
     ]

@@ -6,26 +6,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('exams', '0001_initial'),
-        ('schools', '0001_initial'),
-        ('teachers', '0001_initial'),
+        ("exams", "0001_initial"),
+        ("schools", "0001_initial"),
+        ("teachers", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='teacher',
-            name='teachers_te_school__e5d1bf_idx',
+            model_name="teacher",
+            name="teachers_te_school__e5d1bf_idx",
         ),
         migrations.AlterField(
-            model_name='teacher',
-            name='subject',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='teachers', to='exams.subject'),
+            model_name="teacher",
+            name="subject",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="teachers",
+                to="exams.subject",
+            ),
         ),
         migrations.AddIndex(
-            model_name='teacher',
-            index=models.Index(fields=['school'], name='teachers_te_school__56510d_idx'),
+            model_name="teacher",
+            index=models.Index(
+                fields=["school"], name="teachers_te_school__56510d_idx"
+            ),
         ),
     ]

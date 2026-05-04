@@ -3,6 +3,6 @@ from django.urls import path, include
 from .views import SchoolViewSet
 
 router = DefaultRouter()
-router.register('schools', SchoolViewSet, basename='schools')
+router.register("schools", SchoolViewSet, basename="schools")
 
-urlpatterns = [path('', include(router.urls))]
+urlpatterns = [path("", include(router.urls))]

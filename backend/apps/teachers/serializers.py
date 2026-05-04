@@ -8,23 +8,32 @@ from apps.exams.models import Subject
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
-        fields = ['id', 'name', 'code', 'class_name']
+        fields = ["id", "name", "code", "class_name"]
 
 
 class TeacherSerializer(serializers.ModelSerializer):
-    user_detail = UserSerializer(source='user', read_only=True)
-    subjects_detail = SubjectSerializer(source='subjects', many=True, read_only=True)
+    user_detail = UserSerializer(source="user", read_only=True)
+    subjects_detail = SubjectSerializer(source="subjects", many=True, read_only=True)
     full_name = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
 
     class Meta:
         model = Teacher
         fields = [
-            'id', 'school', 'user', 'user_detail', 'full_name', 'email',
-            'subjects', 'subjects_detail', 'qualification', 'experience_years',
-            'joining_date', 'created_at'
+            "id",
+            "school",
+            "user",
+            "user_detail",
+            "full_name",
+            "email",
+            "subjects",
+            "subjects_detail",
+            "qualification",
+            "experience_years",
+            "joining_date",
+            "created_at",
         ]
-        read_only_fields = ['id', 'school', 'joining_date', 'created_at']
+        read_only_fields = ["id", "school", "joining_date", "created_at"]
 
     def get_full_name(self, obj):
         return obj.user.get_full_name()
@@ -35,65 +44,78 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 class TeacherCreateSerializer(serializers.ModelSerializer):
     subjects = serializers.PrimaryKeyRelatedField(
-        queryset=Subject.objects.all(),
-        many=True,
-        required=False
+        queryset=Subject.objects.all(), many=True, required=False
     )
-    first_name = serializers.CharField(source='user.first_name', required=False)
-    last_name = serializers.CharField(source='user.last_name', required=False)
-    email = serializers.EmailField(source='user.email', required=False)
-    profile_photo = serializers.ImageField(source='user.profile_photo', required=False, allow_null=True)
+    first_name = serializers.CharField(source="user.first_name", required=False)
+    last_name = serializers.CharField(source="user.last_name", required=False)
+    email = serializers.EmailField(source="user.email", required=False)
+    profile_photo = serializers.ImageField(
+        source="user.profile_photo", required=False, allow_null=True
+    )
 
     class Meta:
         model = Teacher
         fields = [
-            'user', 'subjects', 'qualification', 'experience_years',
-            'first_name', 'last_name', 'email', 'profile_photo'
+            "user",
+            "subjects",
+            "qualification",
+            "experience_years",
+            "first_name",
+            "last_name",
+            "email",
+            "profile_photo",
         ]
 
     def validate_user(self, value):
-        request = self.context['request']
+        request = self.context["request"]
         if value.school is None and request.user.school is not None:
             value.school = request.user.school
-            value.save(update_fields=['school'])
+            value.save(update_fields=["school"])
 
         if value.school != request.user.school:
             raise serializers.ValidationError("User does not belong to your school.")
-        if value.role != 'teacher':
+        if value.role != "teacher":
             from apps.students.models import Student
+
             if Student.objects.filter(user=value).exists():
-                raise serializers.ValidationError("User already has a student profile and cannot be registered as teacher.")
+                raise serializers.ValidationError(
+                    "User already has a student profile and cannot be registered as teacher."
+                )
             # If role was saved with a fallback/default, normalize it for this flow.
-            value.role = 'teacher'
-            value.save(update_fields=['role'])
+            value.role = "teacher"
+            value.save(update_fields=["role"])
         return value
 
     def validate_subjects(self, value):
-        request = self.context.get('request')
+        request = self.context.get("request")
         if request and value:
             # Verify all subjects belong to the requester's school
             for subject in value:
                 if subject.school != request.user.school:
-                    raise serializers.ValidationError("One or more subjects do not belong to your school.")
+                    raise serializers.ValidationError(
+                        "One or more subjects do not belong to your school."
+                    )
         return value
 
     def create(self, validated_data):
-        subjects = validated_data.pop('subjects', [])
+        subjects = validated_data.pop("subjects", [])
         teacher = super().create(validated_data)
         teacher.subjects.set(subjects)
         return teacher
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop('user', None) or {}
-        subjects = validated_data.pop('subjects', None)
+        user_data = validated_data.pop("user", None) or {}
+        subjects = validated_data.pop("subjects", None)
         instance = super().update(instance, validated_data)
 
         if user_data:
             user = instance.user
-            new_email = user_data.get('email')
+            new_email = user_data.get("email")
             if new_email and new_email != user.email:
                 if User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
-                    raise serializers.ValidationError({'email': 'A user with this email already exists.'})
+                    raise serializers.ValidationError(
+                        {"email": "A user with this email already exists."}
+                    )
             for attr, value in user_data.items():
                 setattr(user, attr, value)
             user.save()

@@ -7,53 +7,153 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('schools', '0001_initial'),
-        ('students', '0001_initial'),
+        ("schools", "0001_initial"),
+        ("students", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FeeStructure',
+            name="FeeStructure",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('class_name', models.CharField(max_length=20)),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
-                ('academic_year', models.CharField(default='2024-25', max_length=20)),
-                ('due_date', models.DateField(blank=True, null=True)),
-                ('description', models.CharField(blank=True, max_length=200)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='fee_structures', to='schools.school')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("class_name", models.CharField(max_length=20)),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
+                ("academic_year", models.CharField(default="2024-25", max_length=20)),
+                ("due_date", models.DateField(blank=True, null=True)),
+                ("description", models.CharField(blank=True, max_length=200)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="fee_structures",
+                        to="schools.school",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'fees_feestructure',
-                'unique_together': {('school', 'class_name', 'academic_year')},
+                "db_table": "fees_feestructure",
+                "unique_together": {("school", "class_name", "academic_year")},
             },
         ),
         migrations.CreateModel(
-            name='Payment',
+            name="Payment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
-                ('status', models.CharField(choices=[('paid', 'Paid'), ('pending', 'Pending'), ('partial', 'Partial'), ('waived', 'Waived')], default='pending', max_length=10)),
-                ('payment_method', models.CharField(choices=[('cash', 'Cash'), ('online', 'Online Transfer'), ('cheque', 'Cheque'), ('dd', 'Demand Draft')], default='cash', max_length=10)),
-                ('payment_date', models.DateField(blank=True, null=True)),
-                ('transaction_id', models.CharField(blank=True, max_length=100)),
-                ('remarks', models.CharField(blank=True, max_length=200)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_payments', to=settings.AUTH_USER_MODEL)),
-                ('fee_structure', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='payments', to='fees.feestructure')),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='schools.school')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='students.student')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("paid", "Paid"),
+                            ("pending", "Pending"),
+                            ("partial", "Partial"),
+                            ("waived", "Waived"),
+                        ],
+                        default="pending",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "payment_method",
+                    models.CharField(
+                        choices=[
+                            ("cash", "Cash"),
+                            ("online", "Online Transfer"),
+                            ("cheque", "Cheque"),
+                            ("dd", "Demand Draft"),
+                        ],
+                        default="cash",
+                        max_length=10,
+                    ),
+                ),
+                ("payment_date", models.DateField(blank=True, null=True)),
+                ("transaction_id", models.CharField(blank=True, max_length=100)),
+                ("remarks", models.CharField(blank=True, max_length=200)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_payments",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "fee_structure",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="payments",
+                        to="fees.feestructure",
+                    ),
+                ),
+                (
+                    "school",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payments",
+                        to="schools.school",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="payments",
+                        to="students.student",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'fees_payment',
-                'indexes': [models.Index(fields=['school', 'status'], name='fees_paymen_school__5817db_idx'), models.Index(fields=['student', 'status'], name='fees_paymen_student_a03bf9_idx')],
+                "db_table": "fees_payment",
+                "indexes": [
+                    models.Index(
+                        fields=["school", "status"],
+                        name="fees_paymen_school__5817db_idx",
+                    ),
+                    models.Index(
+                        fields=["student", "status"],
+                        name="fees_paymen_student_a03bf9_idx",
+                    ),
+                ],
             },
         ),
     ]

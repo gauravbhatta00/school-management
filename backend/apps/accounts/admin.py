@@ -5,21 +5,43 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['email', 'first_name', 'last_name', 'role', 'school', 'is_active']
-    list_filter = ['role', 'is_active', 'school']
-    search_fields = ['email', 'first_name', 'last_name']
-    ordering = ['-date_joined']
+    list_display = ["email", "first_name", "last_name", "role", "school", "is_active"]
+    list_filter = ["role", "is_active", "school"]
+    search_fields = ["email", "first_name", "last_name"]
+    ordering = ["-date_joined"]
 
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Personal Info', {'fields': ('first_name', 'last_name')}),
-        ('School & Role', {'fields': ('school', 'role')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        (None, {"fields": ("email", "password")}),
+        ("Personal Info", {"fields": ("first_name", "last_name")}),
+        ("School & Role", {"fields": ("school", "role")}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
     )
 
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_name', 'role', 'school', 'password1', 'password2'),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "first_name",
+                    "last_name",
+                    "role",
+                    "school",
+                    "password1",
+                    "password2",
+                ),
+            },
+        ),
     )

@@ -12,19 +12,21 @@ from .serializers import NoticeSerializer, CalendarEventSerializer
 class NoticeViewSet(viewsets.ModelViewSet):
     serializer_class = NoticeSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['is_published']
-    search_fields = ['title', 'message']
+    filterset_fields = ["is_published"]
+    search_fields = ["title", "message"]
 
     def get_queryset(self):
-        queryset = Notice.objects.filter(school=self.request.user.school).select_related('created_by')
+        queryset = Notice.objects.filter(
+            school=self.request.user.school
+        ).select_related("created_by")
 
-        if self.request.user.role != 'admin':
+        if self.request.user.role != "admin":
             queryset = queryset.filter(is_published=True)
 
         return queryset
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsSchoolAdmin()]
         return [IsAuthenticated()]
 
@@ -35,19 +37,18 @@ class NoticeViewSet(viewsets.ModelViewSet):
 class CalendarEventViewSet(viewsets.ModelViewSet):
     serializer_class = CalendarEventSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['event_type', 'start_date', 'end_date']
-    search_fields = ['title', 'description']
+    filterset_fields = ["event_type", "start_date", "end_date"]
+    search_fields = ["title", "description"]
 
     def get_queryset(self):
         return (
-            CalendarEvent.objects
-            .filter(school=self.request.user.school)
-            .select_related('created_by')
-            .order_by('-created_at')
+            CalendarEvent.objects.filter(school=self.request.user.school)
+            .select_related("created_by")
+            .order_by("-created_at")
         )
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsSchoolAdmin()]
         return [IsAuthenticated()]
 

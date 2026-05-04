@@ -3,6 +3,6 @@ from django.urls import path, include
 from .views import AttendanceViewSet
 
 router = DefaultRouter()
-router.register('attendance', AttendanceViewSet, basename='attendance')
+router.register("attendance", AttendanceViewSet, basename="attendance")
 
-urlpatterns = [path('', include(router.urls))]
+urlpatterns = [path("", include(router.urls))]

@@ -11,17 +11,13 @@ from django.db import models
 
 class Student(models.Model):
     school = models.ForeignKey(
-        'schools.School',
-        on_delete=models.CASCADE,
-        related_name='students'
+        "schools.School", on_delete=models.CASCADE, related_name="students"
     )
     user = models.OneToOneField(
-        'accounts.User',
-        on_delete=models.CASCADE,
-        related_name='student_profile'
+        "accounts.User", on_delete=models.CASCADE, related_name="student_profile"
     )
-    class_name = models.CharField(max_length=20)    # e.g. "Grade 10"
-    section = models.CharField(max_length=10)        # e.g. "A"
+    class_name = models.CharField(max_length=20)  # e.g. "Grade 10"
+    section = models.CharField(max_length=10)  # e.g. "A"
     roll_number = models.CharField(max_length=20)
 
     # Optional personal details
@@ -34,10 +30,10 @@ class Student(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'students_student'
-        unique_together = [('school', 'class_name', 'section', 'roll_number')]
+        db_table = "students_student"
+        unique_together = [("school", "class_name", "section", "roll_number")]
         indexes = [
-            models.Index(fields=['school', 'class_name', 'section']),
+            models.Index(fields=["school", "class_name", "section"]),
         ]
 
     def __str__(self):
