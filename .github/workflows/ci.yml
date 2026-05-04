@@ -41,7 +41,8 @@ jobs:
         python-version: ['3.10', '3.11']
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # Uncomment and add DATABASE_URL secret when switching to Postgres:
+      # DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Checkout

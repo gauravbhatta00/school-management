@@ -42,5 +42,12 @@ Next recommended improvements:
 
 Secrets and enforcement:
 
-- The workflow now reads `SECRET_KEY` and `DATABASE_URL` from repository Secrets and runs `python manage.py migrate` before tests. Add those Secrets in GitHub: **Settings → Secrets and variables → Actions**.
+- The workflow now reads `SECRET_KEY` from repository Secrets and runs `python manage.py migrate` before tests.
+- **Current**: Uses SQLite (no `DATABASE_URL` secret needed).
+- **Future (Postgres)**: Uncomment the `DATABASE_URL` line in the workflow and add the secret to GitHub.
+
+Secrets and enforcement:
+- Add `SECRET_KEY` Secret in GitHub: **Settings → Secrets and variables → Actions** → New repository secret
+  - Generate a key: `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`
+- When switching to Postgres, add `DATABASE_URL` Secret: `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
 - Lint failures are enforced: `black --check` and `flake8` now fail the workflow on violations.

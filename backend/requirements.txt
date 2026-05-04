@@ -5,6 +5,7 @@ djoser
 django-cors-headers
 django-filter
 psycopg2-binary
+dj-database-url
 Pillow
 python-decouple
 gunicorn

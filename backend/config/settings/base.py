@@ -150,3 +150,27 @@ CORS_ALLOWED_ORIGINS = config(
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 CORS_ALLOW_CREDENTIALS = True
+
+
+# ─── Database configuration from DATABASE_URL or default sqlite ──────────────
+import dj_database_url
+
+_db_url = config('DATABASE_URL', default='')
+
+if _db_url:
+    # Use dj-database-url to parse DATABASE_URL (Postgres, MySQL, SQLite, etc.)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=_db_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Default to SQLite if DATABASE_URL not set
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
