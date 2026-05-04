@@ -77,8 +77,8 @@ npm test
 ```
 
 ### Issue: Lint warnings fail the workflow
-**Current:** Linting uses `|| true` so it won't block the run.
-**To enforce:** Remove `|| true` from the workflow.
+**Current:** Lint failures are enforced — `black` and `flake8` will now fail the workflow when they find issues.
+If you prefer lint warnings only, re-add `|| true` to the linter steps (not recommended).
 
 ## Manual Workflow Triggers (Optional)
 
@@ -89,13 +89,15 @@ You can manually trigger the workflow without pushing:
 
 ## Environment Secrets (Advanced)
 
+The workflow now reads `SECRET_KEY` and `DATABASE_URL` from repository Secrets and runs migrations before tests.
 If Django needs environment variables in CI:
 1. Go to **Settings** → **Secrets and variables** → **Actions**.
-2. Add secrets like `DATABASE_URL`, `SECRET_KEY`, etc.
-3. Reference in workflow:
+2. Add secrets `SECRET_KEY` and `DATABASE_URL` (or set to empty if using sqlite).
+3. The backend job uses them like:
 ```yaml
 env:
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
 ```
 
 ## Summary: Workflow Execution Order
@@ -108,7 +110,7 @@ env:
 
 ## Next Steps to Improve
 
-- [ ] Add Django environment setup (migrations, DB, SECRET_KEY)
+- [x] Add Django environment setup (migrations, DB, SECRET_KEY)
 - [ ] Add code coverage reporting (codecov/coveralls)
 - [ ] Add Docker build step (if using Docker for deployment)
 - [ ] Add automatic deployment to staging on success (CD step)

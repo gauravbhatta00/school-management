@@ -39,3 +39,8 @@ Next recommended improvements:
 - Add exact `black` and `flake8` configuration files (e.g., `pyproject.toml`, `.flake8`).
 - Add environment/secrets guidance for Django settings when running in CI (use repository `Secrets`).
 - Add `collectstatic` or database setup if Django tests require full integration.
+
+Secrets and enforcement:
+
+- The workflow now reads `SECRET_KEY` and `DATABASE_URL` from repository Secrets and runs `python manage.py migrate` before tests. Add those Secrets in GitHub: **Settings → Secrets and variables → Actions**.
+- Lint failures are enforced: `black --check` and `flake8` now fail the workflow on violations.
