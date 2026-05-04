@@ -39,9 +39,7 @@ SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 LOGGING = {
     "version": 1,
@@ -49,8 +47,7 @@ LOGGING = {
     "formatters": {
         "verbose": {
             "format": (
-                "{levelname} {asctime} {module} {process:d} "
-                "{thread:d} {message}"
+                "{levelname} {asctime} {module} {process:d} " "{thread:d} {message}"
             ),
             "style": "{",
         },
