@@ -9,7 +9,7 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = config("SECRET_KEY", default="change-me-in-production")
+SECRET_KEY = config("SECRET_KEY", default="").strip() or "change-me-in-production"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
