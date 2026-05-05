@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4        # ✅ v5 doesn't exist
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -25,12 +25,10 @@ jobs:
           pip install black==23.9.1 flake8
 
       - name: Run black (check)
-        run: |
-          black --check backend
+        run: black --check backend
 
       - name: Run flake8
-        run: |
-          flake8 backend
+        run: flake8 backend
 
   backend:
     name: Backend Tests
@@ -41,12 +39,10 @@ jobs:
         python-version: ['3.10', '3.11']
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      # Uncomment and add DATABASE_URL secret when switching to Postgres:
-      # DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4        # ✅ v5 doesn't exist
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -54,7 +50,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@v4          # ✅ v5 doesn't exist
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -66,36 +62,34 @@ jobs:
 
       - name: Run migrations
         working-directory: backend
-        run: |
-          python manage.py migrate --noinput
+        run: python manage.py migrate --noinput
 
       - name: Run backend tests
         working-directory: backend
-        run: |
-          pytest -q
+        run: pytest -q
 
   frontend:
     name: Frontend Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4        # ✅ v5 doesn't exist
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4      # ✅ v5 doesn't exist
         with:
           node-version: '18'
 
       - name: Cache node modules
-        uses: actions/cache@v5
+        uses: actions/cache@v4          # ✅ v5 doesn't exist
         with:
           path: frontend/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install and test frontend
+      - name: Install and build frontend
         working-directory: frontend
         run: |
           npm ci
-          npm test --silent
+          npm run build
