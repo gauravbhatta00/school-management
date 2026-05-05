@@ -1,5 +1,5 @@
 [flake8]
-max-line-length = 88
+max-line-length = 140
 extend-ignore =
     E203,
     W503
@@ -19,10 +19,6 @@ per-file-ignores =
     backend/**/migrations/*.py: E501,F401,F403
     backend/config/settings/*.py: F401,F403
     backend/scripts/*.py: E402
-[flake8]
-exclude = .venv,backend/.venv
-max-line-length = 140
-per-file-ignores =
     backend/config/settings/base.py:E402
     backend/config/settings/__init__.py:F401,F403
     backend/config/settings/dev.py:F403,F405
