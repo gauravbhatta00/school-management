@@ -91,5 +91,5 @@ jobs:
       - name: Install and build frontend
         working-directory: frontend
         run: |
-          npm ci
+          npm ci --audit=false
           npm run build
