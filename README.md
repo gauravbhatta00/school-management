@@ -106,21 +106,32 @@ npm run dev
 
 ---
 
-## 🐳 Docker (Full Stack)
+## 🐳 Docker Deployment (Recommended)
+
+**Easiest way to run the entire stack with a single command:**
 
 ```bash
 # From project root
 cp .env.example .env
 docker compose up --build
 
-# Frontend → http://localhost
-# Backend API → http://localhost:8000
-# Django Admin → http://localhost:8000/admin
+# ✨ Services automatically start:
+# - PostgreSQL database
+# - Django backend with migrations & static files
+# - React frontend with Nginx proxy
 ```
+
+**Access:**
+- Frontend: http://localhost
+- API: http://localhost/api/
+- Admin: http://localhost/admin/
+- Backend (direct): http://localhost:8000
+
+For detailed Docker commands, troubleshooting, and production setup, see [DOCKER_GUIDE.md](DOCKER_GUIDE.md).
 
 ---
 
-## 🔑 Demo Credentials (after seeding)
+## ⚡ Quick Start (Local Development)
 
 | Role | Email | Password |
 |------|-------|----------|

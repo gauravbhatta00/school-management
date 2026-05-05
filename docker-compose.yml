@@ -1,29 +1,33 @@
-services:
-  # ── Django backend ─────────────────────────────────────────────────────────
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - ./backend:/app
-    ports:
-      - "8000:8000"
+version: '3.9'
 
-  # ── React frontend ─────────────────────────────────────────────────────────
-  frontend:
+services:
+  # ── Unified Backend + Frontend Application (SQLite) ────────────────────────
+  app:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    environment:
+      DJANGO_ENV: ${DJANGO_ENV}
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG:-false}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      VITE_API_URL: ${VITE_API_URL}
+    volumes:
+      - app_data:/app/backend/data
+      - static_vol:/app/backend/static
+      - media_vol:/app/backend/media
     ports:
       - "80:80"
-    depends_on:
-      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
+  app_data:
   static_vol:
   media_vol:
