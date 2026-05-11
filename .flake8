@@ -3,6 +3,7 @@ max-line-length = 140
 extend-ignore =
     E203,
     W503
+
 exclude =
     .venv,
     backend/.venv,
@@ -19,15 +20,15 @@ per-file-ignores =
     backend/**/migrations/*.py: E501,F401,F403
     backend/config/settings/*.py: F401,F403
     backend/scripts/*.py: E402
-    backend/config/settings/base.py:E402
-    backend/config/settings/__init__.py:F401,F403
-    backend/config/settings/dev.py:F403,F405
-    backend/config/settings/prod.py:F401,F403
-    backend/scripts/seed.py:E402
-    backend/apps/tests.py:F401
-    backend/apps/accounts/views.py:F401
-    backend/apps/attendance/views.py:F401
-    backend/apps/exams/models.py:F401
-    backend/apps/exams/serializers.py:F401
-    backend/apps/fees/serializers.py:F401
-    backend/apps/schools/views.py:F401
+    backend/config/settings/base.py: E402
+    backend/config/settings/__init__.py: F401,F403
+    backend/config/settings/dev.py: F403,F405
+    backend/config/settings/prod.py: F401,F403
+    backend/scripts/seed.py: E402
+    backend/apps/tests.py: F401
+    backend/apps/accounts/views.py: F401
+    backend/apps/attendance/views.py: F401
+    backend/apps/exams/models.py: F401
+    backend/apps/exams/serializers.py: F401
+    backend/apps/fees/serializers.py: F401
+    backend/apps/schools/views.py: F401
