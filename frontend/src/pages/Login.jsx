@@ -60,7 +60,7 @@ export default function Login() {
             E
           </div>
           <span className="text-xl font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
-            EduCore
+            EduCore 123
           </span>
         </div>
 
