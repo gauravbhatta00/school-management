@@ -121,6 +121,8 @@ docker compose up --build
 # - React frontend with Nginx proxy
 ```
 
+For AWS deployment, point the service at the repository-root [Dockerfile](Dockerfile). That is the production full-stack image.
+
 **Access:**
 - Frontend: http://localhost
 - API: http://localhost/api/

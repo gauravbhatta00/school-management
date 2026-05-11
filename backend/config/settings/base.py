@@ -151,19 +151,78 @@ CORS_ALLOW_CREDENTIALS = True
 
 
 # ─── Database configuration from DATABASE_URL or default sqlite ──────────────
-import dj_database_url
+from urllib.parse import urlparse, unquote
 
 _db_url = config("DATABASE_URL", default="")
 
-if _db_url:
-    # Use dj-database-url to parse DATABASE_URL (Postgres, MySQL, SQLite, etc.)
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=_db_url,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+
+def _parse_database_url(url: str):
+    """Lightweight DATABASE_URL parser to avoid a hard dependency on
+    `dj-database-url`. Supports common schemes: postgres, mysql, sqlite.
+    """
+    parsed = urlparse(url)
+    scheme = parsed.scheme
+
+    if scheme in ("sqlite", "sqlite3"):
+        # sqlite:///relative/path or sqlite:////absolute/path
+        path = parsed.path or ""
+        if path.startswith("/") and path.count("/") >= 2:
+            name = BASE_DIR / path.lstrip("/")
+        else:
+            name = path or (BASE_DIR / "db.sqlite3")
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": name,
+        }
+
+    # Postgres / MySQL style
+    if scheme.startswith("postgres") or scheme.startswith("pgsql"):
+        engine = "django.db.backends.postgresql"
+    elif scheme.startswith("mysql"):
+        engine = "django.db.backends.mysql"
+    else:
+        # Unknown scheme, fallback to sqlite
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+
+    name = parsed.path.lstrip("/") if parsed.path else ""
+    user = unquote(parsed.username) if parsed.username else ""
+    password = unquote(parsed.password) if parsed.password else ""
+    host = parsed.hostname or ""
+    port = str(parsed.port) if parsed.port else ""
+
+    cfg = {
+        "ENGINE": engine,
+        "NAME": name,
     }
+    if user:
+        cfg["USER"] = user
+    if password:
+        cfg["PASSWORD"] = password
+    if host:
+        cfg["HOST"] = host
+    if port:
+        cfg["PORT"] = port
+
+    return cfg
+
+
+if _db_url:
+    try:
+        import dj_database_url
+
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=_db_url,
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+    except Exception:
+        # Fallback to the lightweight parser if dj-database-url isn't installed
+        DATABASES = {"default": _parse_database_url(_db_url)}
 else:
     # Default to SQLite if DATABASE_URL not set
     DATABASES = {

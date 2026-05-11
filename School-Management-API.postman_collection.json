@@ -1,0 +1,1957 @@
+{
+  "info": {
+    "name": "School Management API",
+    "description": "Complete API collection for School Management System with Django REST Framework",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and token management",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword123\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", ""]
+            }
+          }
+        },
+        {
+          "name": "Login (Get JWT Token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/jwt/create/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "jwt", "create", ""]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/token/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "token", "refresh", ""]
+            }
+          }
+        },
+        {
+          "name": "Set Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_password\": \"newpassword123\",\n  \"current_password\": \"oldpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/set_password/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "set_password", ""]
+            }
+          }
+        },
+        {
+          "name": "Reset Password Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/users/reset_password/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "users", "reset_password", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schools",
+      "description": "School management endpoints",
+      "item": [
+        {
+          "name": "List All Schools",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/schools/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schools", ""]
+            }
+          }
+        },
+        {
+          "name": "Create School",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Central High School\",\n  \"email\": \"school@example.com\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"123 School Street\",\n  \"city\": \"City Name\",\n  \"state\": \"State Name\",\n  \"country\": \"Country Name\",\n  \"zip_code\": \"12345\",\n  \"principal_name\": \"Mr. Principal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/schools/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schools", ""]
+            }
+          }
+        },
+        {
+          "name": "Get School Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/schools/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schools", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update School",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Central High School Updated\",\n  \"email\": \"school@example.com\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"123 School Street\",\n  \"city\": \"City Name\",\n  \"state\": \"State Name\",\n  \"country\": \"Country Name\",\n  \"zip_code\": \"12345\",\n  \"principal_name\": \"Mr. Principal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/schools/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schools", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Partial Update School",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New School Name\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/schools/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schools", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete School",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/schools/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schools", "1", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts (Users)",
+      "description": "User management endpoints",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Smith\",\n  \"password\": \"securepassword123\",\n  \"role\": \"TEACHER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", ""]
+            }
+          }
+        },
+        {
+          "name": "Get User Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Current User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Updated First Name\",\n  \"last_name\": \"Updated Last Name\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/me/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "me", ""]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Smith\",\n  \"role\": \"TEACHER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/dashboard_stats/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "dashboard_stats", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Student Portal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/student_portal/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "student_portal", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "description": "Student management endpoints",
+      "item": [
+        {
+          "name": "List Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/students/?page=1&class_name=10&section=A",
+              "host": ["{{base_url}}"],
+              "path": ["api", "students", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "class_name",
+                  "value": "10"
+                },
+                {
+                  "key": "section",
+                  "value": "A"
+                },
+                {
+                  "key": "search",
+                  "value": "john"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"email\": \"student@example.com\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Student\",\n    \"password\": \"securepassword123\"\n  },\n  \"roll_number\": \"001\",\n  \"class_name\": \"10\",\n  \"section\": \"A\",\n  \"date_of_birth\": \"2010-01-15\",\n  \"gender\": \"M\",\n  \"guardian_name\": \"Parent Name\",\n  \"guardian_contact\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/students/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "students", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Student Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/students/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "students", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roll_number\": \"001\",\n  \"class_name\": \"10\",\n  \"section\": \"A\",\n  \"date_of_birth\": \"2010-01-15\",\n  \"gender\": \"M\",\n  \"guardian_name\": \"Parent Name\",\n  \"guardian_contact\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/students/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "students", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/students/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "students", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Bulk Import Students (CSV)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "students.csv"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/students/import-csv/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "students", "import-csv", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "description": "Teacher management endpoints",
+      "item": [
+        {
+          "name": "List Teachers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/teachers/?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "teachers", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "search",
+                  "value": "john"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"email\": \"teacher@example.com\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Teacher\",\n    \"password\": \"securepassword123\"\n  },\n  \"subjects\": [1, 2],\n  \"class_name\": \"10A\",\n  \"date_of_birth\": \"1985-05-20\",\n  \"gender\": \"M\",\n  \"qualification\": \"Bachelor's Degree\",\n  \"experience_years\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/teachers/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "teachers", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Teacher Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/teachers/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "teachers", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Teacher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subjects\": [1, 2],\n  \"class_name\": \"10A\",\n  \"date_of_birth\": \"1985-05-20\",\n  \"gender\": \"M\",\n  \"qualification\": \"Bachelor's Degree\",\n  \"experience_years\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/teachers/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "teachers", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Teacher",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/teachers/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "teachers", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Available Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/teachers/subjects/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "teachers", "subjects", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "description": "Attendance management for students and teachers",
+      "item": [
+        {
+          "name": "List Student Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/?date=2024-01-15&status=present",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", ""],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2024-01-15"
+                },
+                {
+                  "key": "status",
+                  "value": "present"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Attendance Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student\": 1,\n  \"date\": \"2024-01-15\",\n  \"status\": \"present\",\n  \"remarks\": \"Present\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Attendance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student\": 1,\n  \"date\": \"2024-01-15\",\n  \"status\": \"absent\",\n  \"remarks\": \"Absent\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Attendance Record",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Bulk Mark Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attendance_records\": [\n    {\"student\": 1, \"date\": \"2024-01-15\", \"status\": \"present\"},\n    {\"student\": 2, \"date\": \"2024-01-15\", \"status\": \"absent\"},\n    {\"student\": 3, \"date\": \"2024-01-15\", \"status\": \"present\"}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/bulk-mark/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "bulk-mark", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/report/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "report", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Teacher Self Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/attendance/teacher-self/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "teacher-self", ""]
+            }
+          }
+        },
+        {
+          "name": "Record Teacher Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2024-01-15\",\n  \"status\": \"present\",\n  \"remarks\": \"Present\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attendance/teacher-self/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "attendance", "teacher-self", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exams",
+      "description": "Exams, subjects, and results management",
+      "item": [
+        {
+          "name": "List Exams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/exams/?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exams", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Exam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mid Term Exam\",\n  \"exam_type\": \"MID_TERM\",\n  \"start_date\": \"2024-02-01\",\n  \"end_date\": \"2024-02-15\",\n  \"class_name\": \"10\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/exams/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exams", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Exam Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/exams/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exams", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Exam",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mid Term Exam Updated\",\n  \"exam_type\": \"MID_TERM\",\n  \"start_date\": \"2024-02-01\",\n  \"end_date\": \"2024-02-15\",\n  \"class_name\": \"10\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/exams/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exams", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Exam",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/exams/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "exams", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "List Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subjects/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subjects", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mathematics\",\n  \"code\": \"MATH101\",\n  \"description\": \"Mathematics course\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/subjects/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subjects", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Subject Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subjects/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subjects", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Subject",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mathematics\",\n  \"code\": \"MATH101\",\n  \"description\": \"Updated Mathematics course\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/subjects/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subjects", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Subject",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subjects/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subjects", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "List Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/results/?exam=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "results", ""],
+              "query": [
+                {
+                  "key": "exam",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student\": 1,\n  \"exam\": 1,\n  \"subject\": 1,\n  \"marks_obtained\": 85,\n  \"total_marks\": 100,\n  \"grade\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/results/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "results", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Result Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/results/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "results", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Student Result Card",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/results/student-card/?student=1&exam=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "results", "student-card", ""],
+              "query": [
+                {
+                  "key": "student",
+                  "value": "1"
+                },
+                {
+                  "key": "exam",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Class Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/results/class-summary/?class_name=10&exam=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "results", "class-summary", ""],
+              "query": [
+                {
+                  "key": "class_name",
+                  "value": "10"
+                },
+                {
+                  "key": "exam",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fees",
+      "description": "Fee structures and payment management",
+      "item": [
+        {
+          "name": "List Fee Structures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fee-structures/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fee-structures", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Fee Structure",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Annual Fee\",\n  \"amount\": 50000,\n  \"class_name\": \"10\",\n  \"academic_year\": \"2024\",\n  \"description\": \"Annual fee for class 10\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/fee-structures/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fee-structures", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Fee Structure Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fee-structures/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fee-structures", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Fee Structure",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Annual Fee Updated\",\n  \"amount\": 55000,\n  \"class_name\": \"10\",\n  \"academic_year\": \"2024\",\n  \"description\": \"Updated annual fee for class 10\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/fee-structures/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fee-structures", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Fee Structure",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/fee-structures/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "fee-structures", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/?status=paid",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", ""],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "paid"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student\": 1,\n  \"amount\": 50000,\n  \"payment_method\": \"cash\",\n  \"transaction_id\": \"TXN001\",\n  \"payment_date\": \"2024-01-15\",\n  \"academic_year\": \"2024\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Payment Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Record Fee Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student\": 1,\n  \"amount\": 50000,\n  \"payment_method\": \"cash\",\n  \"transaction_id\": \"TXN001\",\n  \"payment_date\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/pay/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "pay", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Student Fee Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/student-status/?student=1&academic_year=2024",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "student-status", ""],
+              "query": [
+                {
+                  "key": "student",
+                  "value": "1"
+                },
+                {
+                  "key": "academic_year",
+                  "value": "2024"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Fee Collection Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/collection-summary/?academic_year=2024",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "collection-summary", ""],
+              "query": [
+                {
+                  "key": "academic_year",
+                  "value": "2024"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "description": "Student applications (leave, transfer, fee waiver, etc)",
+      "item": [
+        {
+          "name": "List Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"application_type\": \"LEAVE_REQUEST\",\n  \"title\": \"Medical Leave\",\n  \"description\": \"Need leave for medical reasons\",\n  \"start_date\": \"2024-01-15\",\n  \"end_date\": \"2024-01-20\",\n  \"document\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Application Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Application",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Medical Leave Updated\",\n  \"description\": \"Need leave for medical reasons\",\n  \"start_date\": \"2024-01-15\",\n  \"end_date\": \"2024-01-25\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Application",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Get My Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/my_applications/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "my_applications", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Applications (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/pending_review/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "pending_review", ""]
+            }
+          }
+        },
+        {
+          "name": "Teacher Response to Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacher_remarks\": \"Application approved by teacher\",\n  \"teacher_recommendation\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications/1/teacher_response/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "1", "teacher_response", ""]
+            }
+          }
+        },
+        {
+          "name": "Admin Review of Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"admin_remarks\": \"Approved by admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications/1/admin_review/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "1", "admin_review", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Application Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/applications/stats/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "applications", "stats", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notices",
+      "description": "Notices and calendar events",
+      "item": [
+        {
+          "name": "List Notices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notices/?is_published=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notices", ""],
+              "query": [
+                {
+                  "key": "is_published",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Notice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Holiday Announcement\",\n  \"message\": \"School will remain closed on national holidays\",\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notices/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notices", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Notice Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notices/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notices", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Notice",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Holiday Announcement Updated\",\n  \"message\": \"School will remain closed on national holidays and weekends\",\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notices/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notices", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Notice",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notices/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notices", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "List Calendar Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/calendar-events/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar-events", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Calendar Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Annual Sports Day\",\n  \"description\": \"Annual sports competition\",\n  \"event_type\": \"SPORTS\",\n  \"start_date\": \"2024-03-15\",\n  \"end_date\": \"2024-03-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/calendar-events/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar-events", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Calendar Event Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/calendar-events/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar-events", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Calendar Event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Annual Sports Day Updated\",\n  \"description\": \"Annual sports competition with prizes\",\n  \"event_type\": \"SPORTS\",\n  \"start_date\": \"2024-03-20\",\n  \"end_date\": \"2024-03-20\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/calendar-events/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar-events", "1", ""]
+            }
+          }
+        },
+        {
+          "name": "Delete Calendar Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/calendar-events/1/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "calendar-events", "1", ""]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

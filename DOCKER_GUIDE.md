@@ -136,13 +136,16 @@ For production, update `.env`:
 SECRET_KEY=<generate-a-long-random-string>
 DJANGO_ENV=prod
 DEBUG=false
-ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com,YOUR_SERVER_IP
+CORS_ALLOWED_ORIGINS=https://yourdomain.com,http://YOUR_SERVER_IP
+CSRF_TRUSTED_ORIGINS=https://yourdomain.com,http://YOUR_SERVER_IP
 
 # Strong database password
 DB_PASSWORD=<strong-password>
 
 # Frontend URL
-VITE_API_URL=https://yourdomain.com
+# Keep empty when frontend and backend are served by the same Nginx host
+VITE_API_URL=
 
 # SSL/HTTPS
 SECURE_SSL_REDIRECT=true
@@ -153,6 +156,19 @@ CSRF_COOKIE_SECURE=true
 Then deploy:
 ```bash
 docker-compose up -d
+```
+
+### AWS Deployment
+
+For AWS Elastic Beanstalk, App Runner, or ECS single-container deployments, use the repository-root [Dockerfile](Dockerfile). That is the full-stack image that builds the React frontend, runs the Django backend, and serves both through Nginx.
+
+If you are deploying directly by EC2 public IP, use these minimum values in `.env`:
+
+```env
+ALLOWED_HOSTS=YOUR_SERVER_IP,localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://YOUR_SERVER_IP
+CSRF_TRUSTED_ORIGINS=http://YOUR_SERVER_IP,https://YOUR_SERVER_IP
+VITE_API_URL=
 ```
 
 ## Architecture
@@ -166,7 +182,7 @@ The system consists of three services:
 - **Health Check**: Confirms database is ready before backend starts
 
 ### Django Backend (`backend`)
-- **Image**: Custom built from `backend/Dockerfile`
+- **Image**: Custom built from the repository-root `Dockerfile` for full-stack deployment
 - **Port**: 8000 (Gunicorn application server)
 - **Key Process**:
   1. Waits for PostgreSQL to be healthy
@@ -179,7 +195,7 @@ The system consists of three services:
   - `media_vol:/app/media` (user uploads)
 
 ### React Frontend (`frontend`)
-- **Image**: Custom built from `frontend/Dockerfile`
+- **Image**: Built inside the repository-root `Dockerfile` as part of the full-stack deployment
 - **Port**: 80 (Nginx web server)
 - **Build Process**:
   1. Multi-stage build: Node builder stage compiles React with Vite

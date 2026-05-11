@@ -8,6 +8,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework.schemas import get_schema_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -18,6 +19,12 @@ urlpatterns = [
         "api/auth/token/refresh/",
         TokenRefreshView.as_view(),
         name="token_refresh",
+    ),
+    # Basic OpenAPI schema for quick docs (JSON)
+    path(
+        "api/auth/docs/",
+        get_schema_view(title="School Management API"),
+        name="api_schema",
     ),
     # App routers
     path("api/", include("apps.schools.urls")),
