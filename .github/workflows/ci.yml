@@ -115,7 +115,7 @@ jobs:
 
     environment:
       name: production
-      url: http://${{ secrets.EC2_HOST }}
+      url: https://qubinery.space/
 
     steps:
       - name: SSH into EC2 & deploy
