@@ -131,26 +131,12 @@ jobs:
             cd ${{ secrets.APP_DIR }}
             git fetch origin main
             git reset --hard origin/main
-            git clean -fd
 
-            echo "🐍 Installing Python dependencies..."
-            if [ ! -d "venv" ]; then
-              echo "Creating virtual environment..."
-              sudo apt install python3.12-venv -y --quiet
-              python3 -m venv venv
-            fi
-            source venv/bin/activate
-            pip install -r backend/requirements.txt --quiet
+            echo "🐳 Rebuilding Docker..."
+            docker-compose down
+            docker-compose up -d --build
 
             echo "🗄️ Running migrations..."
-            cd backend
-            python manage.py migrate --noinput
-            python manage.py collectstatic --noinput
-            cd ..
-
-            echo "🔄 Restarting server..."
-            sudo systemctl restart gunicorn
+            docker-compose exec -T app python manage.py migrate --noinput
 
             echo "✅ Deployed successfully!"
-
-      
