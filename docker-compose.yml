@@ -15,7 +15,6 @@ services:
       VITE_API_URL: ${VITE_API_URL:-}
     volumes:
       - app_data:/app/backend/data
-      - static_vol:/app/backend/staticfiles
       - media_vol:/app/backend/media
       - /etc/letsencrypt:/etc/letsencrypt:ro
     ports:
@@ -30,5 +29,4 @@ services:
 
 volumes:
   app_data:
-  static_vol:
   media_vol:
