@@ -231,3 +231,4 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

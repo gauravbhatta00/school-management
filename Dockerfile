@@ -9,7 +9,7 @@ WORKDIR /frontend
 COPY frontend/package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy frontend source
 COPY frontend/ .
@@ -60,6 +60,9 @@ COPY --from=backend-builder /usr/local/bin /usr/local/bin
 COPY backend/ /app/backend/
 COPY backend/requirements.txt /app/
 
+# Collect static files at build time (permanent fix for missing CSS)
+RUN cd /app/backend && SECRET_KEY=temp-build-key python manage.py collectstatic --noinput
+
 # Copy React build output from frontend builder stage
 COPY --from=frontend-builder /frontend/dist /app/frontend-dist
 
@@ -70,40 +73,13 @@ RUN adduser --disabled-password --gecos '' appuser \
 # Copy Nginx configuration
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Create entrypoint script
-RUN cat > /app/entrypoint.sh << 'EOF'
-#!/bin/bash
-set -e
-
-echo "Running database migrations..."
-cd /app/backend && python manage.py migrate --noinput
-
-echo "Collecting static files..."
-cd /app/backend && python manage.py collectstatic --noinput --clear
-
-echo "Starting Nginx and Gunicorn..."
-
-# Start Gunicorn in background
-cd /app/backend && gunicorn config.wsgi:application \
-  --bind 127.0.0.1:8000 \
-  --workers 3 \
-  --worker-class sync \
-  --access-logfile /dev/stdout \
-  --error-logfile /dev/stderr \
-  --timeout 120 &
-
-DJANGO_PID=$!
-
-# Start Nginx in foreground (this keeps the container running)
-nginx -g 'daemon off;'
-EOF
-
+# Copy entrypoint script (permanent fix for CRLF issues)
+COPY entrypoint.sh /app/entrypoint.sh
+RUN sed -i 's/\r//' /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Set non-root user (but keep root for nginx service)
 # Nginx needs to run as root to bind to port 80
-
 EXPOSE 80
+EXPOSE 443
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-
