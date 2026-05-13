@@ -137,6 +137,6 @@ jobs:
             docker-compose up -d --build
 
             echo "🗄️ Running migrations..."
-            docker-compose exec -T app python manage.py migrate --noinput
+            docker-compose exec -T app python /app/backend/manage.py migrate --noinput
 
             echo "✅ Deployed successfully!"
