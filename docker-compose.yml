@@ -9,16 +9,18 @@ services:
       DJANGO_ENV: ${DJANGO_ENV}
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: ${DEBUG:-false}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-YOUR_SERVER_IP,localhost,127.0.0.1}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://YOUR_SERVER_IP,http://localhost,http://127.0.0.1}
-      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://YOUR_SERVER_IP,https://YOUR_SERVER_IP}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-YOUR_SERVER_IP,localhost,127.0.0.1,qubinery.space,www.qubinery.space}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://YOUR_SERVER_IP,https://qubinery.space,https://www.qubinery.space}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://YOUR_SERVER_IP,https://YOUR_SERVER_IP,https://qubinery.space,https://www.qubinery.space}
       VITE_API_URL: ${VITE_API_URL:-}
     volumes:
       - app_data:/app/backend/data
       - static_vol:/app/backend/static
       - media_vol:/app/backend/media
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     ports:
       - "80:80"
+      - "443:443"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
       interval: 30s
