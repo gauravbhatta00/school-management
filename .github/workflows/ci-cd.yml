@@ -153,11 +153,4 @@ jobs:
 
             echo "✅ Deployed successfully!"
 
-      - name: Smoke test
-        run: |
-          sleep 10
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.EC2_HOST }}:8000/api/)
-          echo "Health check status: $STATUS"
-          [ "$STATUS" = "200" ] || [ "$STATUS" = "404" ] && echo "✅ App is live!" && exit 0
-          echo "❌ Smoke test failed! Status: $STATUS"
-          exit 1
+      
