@@ -7,9 +7,12 @@ Run: python manage.py test apps
 
 from rest_framework import status
 from rest_framework.test import APITestCase
-from django.test import TestCase
+from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from datetime import timedelta
+from djoser import utils as djoser_utils
 
 from apps.accounts.models import User
 from apps.attendance.models import Attendance
@@ -98,6 +101,8 @@ class AuthAPITests(APITestCase):
     def setUp(self):
         self.school = make_school()
         self.admin = make_user(self.school, "admin@t.com", "admin")
+        self.teacher = make_user(self.school, "teacher@t.com", "teacher")
+        self.student = make_user(self.school, "student@t.com", "student")
 
     def test_login_returns_tokens(self):
         resp = self.client.post(
@@ -131,6 +136,46 @@ class AuthAPITests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["email"], "admin@t.com")
         self.assertEqual(resp.data["role"], "admin")
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_password_reset_sends_to_students_and_teachers(self):
+        for email in ["teacher@t.com", "student@t.com"]:
+            resp = self.client.post(
+                "/api/auth/users/reset_password/",
+                {"email": email},
+            )
+            self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertIn("/reset-password/", mail.outbox[0].body)
+        self.assertIn("/reset-password/", mail.outbox[1].body)
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_password_reset_ignores_admin_accounts(self):
+        resp = self.client.post(
+            "/api/auth/users/reset_password/",
+            {"email": "admin@t.com"},
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_password_reset_confirm_updates_password(self):
+        uid = djoser_utils.encode_uid(self.student.pk)
+        token = default_token_generator.make_token(self.student)
+
+        resp = self.client.post(
+            "/api/auth/users/reset_password_confirm/",
+            {
+                "uid": uid,
+                "token": token,
+                "new_password": "NewPass@12345",
+            },
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.student.refresh_from_db()
+        self.assertTrue(self.student.check_password("NewPass@12345"))
 
 
 # ── Multi-Tenancy Tests ───────────────────────────────────────────────────────

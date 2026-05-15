@@ -8,6 +8,7 @@ import TeacherReview from './pages/TeacherReview'
 import AdminReview from './pages/AdminReview'
 import Layout      from './components/layout/Layout'
 import Login       from './pages/Login'
+import ForgotPassword from './pages/ForgotPassword'
 import Dashboard   from './pages/Dashboard'
 import StudentPortal from './pages/StudentPortal'
 import Students    from './pages/Students'
@@ -48,6 +49,14 @@ function AppRoutes() {
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+      />
+      <Route
+        path="/forgot-password"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <ForgotPassword />}
+      />
+      <Route
+        path="/reset-password/:uid/:token"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <ForgotPassword />}
       />
 
       <Route

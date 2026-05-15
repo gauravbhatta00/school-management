@@ -6,6 +6,7 @@ UserCreateSerializer overrides Djoser's default to handle school assignment.
 from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer as DjoserUserCreateSerializer
 from djoser.serializers import (
+    SendEmailResetSerializer as DjoserSendEmailResetSerializer,
     UserCreatePasswordRetypeSerializer as DjoserUserCreatePasswordRetypeSerializer,
 )
 from .models import User
@@ -103,6 +104,19 @@ class UserCreatePasswordRetypeSerializer(DjoserUserCreatePasswordRetypeSerialize
         if request and request.user.is_authenticated and not request.user.is_superuser:
             validated_data["school"] = request.user.school
         return super().create(validated_data)
+
+
+class StudentTeacherPasswordResetSerializer(DjoserSendEmailResetSerializer):
+    """
+    Public reset requests are intentionally limited to student/teacher accounts.
+    Unknown emails and admin emails both return the same 204 response from Djoser.
+    """
+
+    def get_user(self, is_active=True):
+        user = super().get_user(is_active=is_active)
+        if user and user.role in [User.Role.STUDENT, User.Role.TEACHER]:
+            return user
+        return None
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

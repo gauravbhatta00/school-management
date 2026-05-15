@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks'
 import toast from 'react-hot-toast'
 
@@ -141,7 +141,16 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="label">Password</label>
+              <div className="flex items-center justify-between gap-3">
+                <label className="label">Password</label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-medium"
+                  style={{ color: 'var(--accent)' }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   className="input pr-10"

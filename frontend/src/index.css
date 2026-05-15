@@ -262,11 +262,6 @@
   background: rgba(245, 158, 11, 0.08);
 }
 
-.calendar-shell .react-calendar__tile.calendar-day-saturday abbr {
-  color: var(--danger) !important;
-  font-weight: 700;
-}
-
 .calendar-dots {
   position: absolute;
   left: 4px;

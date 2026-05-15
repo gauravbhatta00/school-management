@@ -111,6 +111,14 @@ export const authService = {
   me: () => api.get('/api/users/me/'),
   refreshToken: (refresh) =>
     api.post('/api/auth/jwt/refresh/', { refresh }),
+  requestPasswordReset: (email) =>
+    api.post('/api/auth/users/reset_password/', { email }),
+  confirmPasswordReset: ({ uid, token, newPassword }) =>
+    api.post('/api/auth/users/reset_password_confirm/', {
+      uid,
+      token,
+      new_password: newPassword,
+    }),
 }
 
 export const dashboardService = {

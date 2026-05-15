@@ -89,31 +89,17 @@ You can manually trigger the workflow without pushing:
 
 ## Environment Secrets
 
-**Current (SQLite — No External DB):**
-The workflow reads `SECRET_KEY` from repository Secrets and runs migrations before tests using SQLite (no external database needed).
+**Current (PostgreSQL):**
+The workflow reads `SECRET_KEY` from repository Secrets and runs migrations before tests using a PostgreSQL service container.
 
 To add the secret:
 1. Go to **Settings** → **Secrets and variables** → **Actions**.
 2. Click **New repository secret** and add:
    - Name: `SECRET_KEY`
    - Value: (generate with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`)
-3. No `DATABASE_URL` needed — SQLite creates a local `db.sqlite3` file automatically.
+3. No external `DATABASE_URL` secret is needed for CI because the workflow provisions PostgreSQL itself.
 
-**Future (Postgres):**
-When you switch to Postgres:
-1. Install `psycopg2-binary` and `dj-database-url` (already in `requirements.txt`).
-2. Add `DATABASE_URL` Secret in GitHub:
-   - Name: `DATABASE_URL`
-   - Value: `postgres://USER:PASSWORD@HOST:PORT/DBNAME`
-3. Uncomment the `DATABASE_URL` line in `.github/workflows/ci.yml`:
-   ```yaml
-   env:
-     SECRET_KEY: ${{ secrets.SECRET_KEY }}
-     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-   ```
-4. Add a Postgres service container to the backend job (see the workflow comments for the example).
-
-Django settings already support both SQLite and Postgres via `dj-database-url` — no code changes needed to switch.
+Django settings now default to PostgreSQL, and CI supplies the database through workflow env vars.
 
 ## Summary: Workflow Execution Order
 
