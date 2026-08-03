@@ -59,7 +59,7 @@ export default function Login() {
           >
             E
           </div>
-          <span className="text-xl font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+          <span className="text-xl font-bold" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>
             EduCore 123
           </span>
         </div>
@@ -68,7 +68,7 @@ export default function Login() {
         <div className="relative z-10">
           <h1
             className="text-5xl font-bold leading-tight mb-6"
-            style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}
+            style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}
           >
             Manage your school{' '}
             <span className="text-gradient">intelligently</span>
@@ -107,10 +107,10 @@ export default function Login() {
               className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold"
               style={{ background: 'var(--accent)' }}
             >E</div>
-            <span className="font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>EduCore</span>
+            <span className="font-bold" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>EduCore</span>
           </div>
 
-          <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+          <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>
             Sign in
           </h2>
           <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>

@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# Build-only: packages the desktop backend into a standalone Windows
+# executable (Stage 3 of the desktop conversion). Not needed at runtime.
+pyinstaller==6.21.0

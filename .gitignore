@@ -11,6 +11,7 @@ build/
 
 # Django
 *.log
+*.sqlite3
 local_settings.py
 media/
 staticfiles/
@@ -21,15 +22,36 @@ venv/
 env/
 ENV/
 
-# Environment variables
+# Environment variables (real, local files only — templates stay tracked)
 .env
+.env.*
 !.env.example
+!.env.*.example
 
 # Node
 node_modules/
 dist/
+out/
+.webpack/
 .cache/
 *.local
+
+# Desktop packaging and persistent data
+backend/build/
+backend/dist/
+backend/*.spec.bak
+release/
+installers/
+backups/
+.django-secret
+*.tmp
+
+# Local desktop data directory, only relevant if SCHOOL_DATA_DIR is ever
+# pointed inside the repo for manual testing (the default is outside the
+# repo, under %LOCALAPPDATA%).
+.desktop-data/
+reports/
+launcher.log
 
 # IDE
 .vscode/
@@ -39,9 +61,6 @@ dist/
 *.swo
 .DS_Store
 Thumbs.db
-
-# Docker
-*.override.yml
 
 # Coverage
 htmlcov/

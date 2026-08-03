@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 export function Spinner({ size = 'md' }) {
@@ -28,7 +28,7 @@ export function StatCard({ label, value, sub, icon, color = '#6366f1', trend }) 
           <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
             {label}
           </p>
-          <p className="text-3xl font-bold mt-2" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+          <p className="text-3xl font-bold mt-2" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>
             {value ?? '—'}
           </p>
           {sub && (
@@ -43,8 +43,8 @@ export function StatCard({ label, value, sub, icon, color = '#6366f1', trend }) 
           )}
         </div>
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0"
-          style={{ background: `${color}22`, color }}
+          className="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0"
+          style={{ background: `${color}1f`, color, boxShadow: `0 0 0 1px ${color}33 inset` }}
         >
           {icon}
         </div>
@@ -55,6 +55,13 @@ export function StatCard({ label, value, sub, icon, color = '#6366f1', trend }) 
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 export function Modal({ open, onClose, title, children, width = 'max-w-lg' }) {
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open, onClose])
+
   if (!open) return null
   return (
     <div
@@ -63,17 +70,20 @@ export function Modal({ open, onClose, title, children, width = 'max-w-lg' }) {
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className={`w-full ${width} rounded-2xl shadow-2xl animate-slide-up`}
+        className={`w-full ${width} max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl animate-slide-up`}
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
-          <h3 className="text-base font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+        <div
+          className="sticky top-0 z-10 flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}
+        >
+          <h3 className="text-base font-bold" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0"
             style={{ color: 'var(--text-muted)' }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)' }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
@@ -142,7 +152,10 @@ export function Pagination({ page, totalPages, onPageChange }) {
       >
         ← Prev
       </button>
-      <span className="text-xs px-3" style={{ color: 'var(--text-secondary)' }}>
+      <span
+        className="text-xs px-3 py-1.5 rounded-lg font-medium"
+        style={{ color: 'var(--text-primary)', background: 'var(--bg-hover)' }}
+      >
         Page {page} of {totalPages}
       </span>
       <button
@@ -152,6 +165,26 @@ export function Pagination({ page, totalPages, onPageChange }) {
       >
         Next →
       </button>
+    </div>
+  )
+}
+
+// ── Empty State ───────────────────────────────────────────────────────────────
+export function EmptyState({ title = 'Nothing here yet', message, icon }) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-14 px-4">
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: 'var(--bg-hover)', color: 'var(--text-muted)' }}
+      >
+        {icon ?? (
+          <svg viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
+            <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v2H4V6zm0 4h12v4H4v-4z" clipRule="evenodd" />
+          </svg>
+        )}
+      </div>
+      <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</p>
+      {message && <p className="text-xs mt-1 max-w-xs" style={{ color: 'var(--text-muted)' }}>{message}</p>}
     </div>
   )
 }

@@ -5,6 +5,7 @@ Scoped to the requesting user's school automatically.
 
 import csv
 import io
+import re
 from datetime import datetime
 
 from django.db import IntegrityError, transaction
@@ -21,6 +22,18 @@ from .models import Student
 from .serializers import StudentSerializer, StudentCreateSerializer
 from apps.accounts.models import User
 from apps.accounts.permissions import IsSchoolAdmin, IsAdminOrTeacher
+
+
+def generate_student_password(first_name, last_name, class_name, section, roll_number):
+    name_part = re.sub(r"[^A-Za-z0-9]", "", f"{first_name}{last_name}")[:8]
+    if not name_part:
+        name_part = "Student"
+    name_part = name_part[:1].upper() + name_part[1:]
+
+    class_part = re.sub(r"[^A-Za-z0-9]", "", class_name)
+    section_part = re.sub(r"[^A-Za-z0-9]", "", section).upper()
+    roll_part = re.sub(r"[^A-Za-z0-9]", "", roll_number)
+    return f"{name_part}@{class_part}{section_part}{roll_part}"
 
 
 class StudentViewSet(viewsets.ModelViewSet):
@@ -93,9 +106,14 @@ class StudentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        default_password = (
+            request.data.get("default_password") or request.data.get("password") or ""
+        ).strip()
+
         created_count = 0
         failed_count = 0
         errors = []
+        credentials = []
 
         for index, row in enumerate(reader, start=2):
             email = (row.get("email") or "").strip().lower()
@@ -106,7 +124,7 @@ class StudentViewSet(viewsets.ModelViewSet):
             roll_number = (row.get("roll_number") or "").strip()
             parent_contact = (row.get("parent_contact") or "").strip()
             address = (row.get("address") or "").strip()
-            password = (row.get("password") or "ChangeMe123").strip()
+            row_password = (row.get("password") or "").strip()
             dob_raw = (row.get("date_of_birth") or "").strip()
 
             if not all(
@@ -138,6 +156,14 @@ class StudentViewSet(viewsets.ModelViewSet):
                     )
                     continue
 
+            password = (
+                row_password
+                or default_password
+                or generate_student_password(
+                    first_name, last_name, class_name, section, roll_number
+                )
+            )
+
             try:
                 with transaction.atomic():
                     user = User.objects.create_user(
@@ -159,6 +185,20 @@ class StudentViewSet(viewsets.ModelViewSet):
                         parent_contact=parent_contact,
                     )
                 created_count += 1
+                credentials.append(
+                    {
+                        "email": email,
+                        "full_name": f"{first_name} {last_name}".strip(),
+                        "password": password,
+                        "source": (
+                            "csv"
+                            if row_password
+                            else "default"
+                            if default_password
+                            else "generated"
+                        ),
+                    }
+                )
             except IntegrityError:
                 failed_count += 1
                 errors.append(
@@ -179,6 +219,7 @@ class StudentViewSet(viewsets.ModelViewSet):
                 "created_count": created_count,
                 "failed_count": failed_count,
                 "errors": errors,
+                "credentials": credentials,
                 "required_columns": sorted(required_columns),
                 "optional_columns": [
                     "parent_contact",

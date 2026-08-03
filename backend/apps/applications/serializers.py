@@ -8,6 +8,17 @@ from django.db import transaction
 from .models import Application
 from apps.accounts.serializers import UserSerializer
 from apps.students.models import Student
+from apps.notices.models import Notification
+
+
+def _notify_student(application, title, message):
+    Notification.objects.create(
+        school=application.school,
+        recipient=application.student.user,
+        title=title,
+        message=message,
+        link="/applications",
+    )
 
 
 class ApplicationListSerializer(serializers.ModelSerializer):
@@ -42,9 +53,11 @@ class ApplicationListSerializer(serializers.ModelSerializer):
             "description",
             "start_date",
             "end_date",
+            "teacher_review",
             "teacher_decision",
             "teacher_reviewed_at",
             "teacher_name",
+            "admin_review",
             "admin_decision",
             "admin_reviewed_at",
             "admin_name",
@@ -122,7 +135,12 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create application and link to current user's student profile."""
         request = self.context.get("request")
-        student = Student.objects.get(user=request.user)
+        try:
+            student = Student.objects.get(user=request.user)
+        except Student.DoesNotExist:
+            raise serializers.ValidationError(
+                {"detail": "Your student profile is not set up yet. Contact your school admin."}
+            )
         school = request.user.school
 
         return Application.objects.create(
@@ -175,6 +193,28 @@ class TeacherApplicationReviewSerializer(serializers.ModelSerializer):
             ):
                 instance.apply_leave_attendance(marked_by=request.user)
 
+            if instance.application_type == Application.Type.LEAVE_REQUEST:
+                decision_word = "approved" if instance.status == Application.Status.APPROVED else "rejected"
+                _notify_student(
+                    instance,
+                    title=f"Leave request {decision_word}",
+                    message=(
+                        f'Your leave request "{instance.title}" was {decision_word} by '
+                        f"{request.user.get_full_name()}."
+                        + (f' Note: "{instance.teacher_review}"' if instance.teacher_review else "")
+                    ),
+                )
+            else:
+                _notify_student(
+                    instance,
+                    title="Application reviewed by teacher",
+                    message=(
+                        f'Your application "{instance.title}" was reviewed by '
+                        f"{request.user.get_full_name()} and sent to the admin for a final decision."
+                        + (f' Note: "{instance.teacher_review}"' if instance.teacher_review else "")
+                    ),
+                )
+
         return instance
 
 
@@ -211,4 +251,16 @@ class AdminApplicationReviewSerializer(serializers.ModelSerializer):
             instance.status = Application.Status.REJECTED
 
         instance.save()
+
+        decision_word = "approved" if instance.status == Application.Status.APPROVED else "rejected"
+        _notify_student(
+            instance,
+            title=f"Application {decision_word}",
+            message=(
+                f'Your application "{instance.title}" was {decision_word} by '
+                f"{request.user.get_full_name()}."
+                + (f' Note: "{instance.admin_review}"' if instance.admin_review else "")
+            ),
+        )
+
         return instance

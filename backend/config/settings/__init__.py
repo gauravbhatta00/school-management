@@ -6,7 +6,9 @@ import os
 
 env = os.environ.get("DJANGO_ENV", "dev")
 
-if env == "prod":
+if env == "desktop":
+    from .desktop import *
+elif env == "prod":
     from .prod import *
 else:
     from .dev import *

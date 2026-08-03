@@ -1,10 +1,18 @@
 import { useContext, useState, useEffect, useCallback } from 'react'
 import { AuthContext } from '../context/AuthContext'
+import { ThemeContext } from '../context/ThemeContext'
 
 // ── useAuth ───────────────────────────────────────────────────────────────────
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
+}
+
+// ── useTheme ──────────────────────────────────────────────────────────────────
+export function useTheme() {
+  const ctx = useContext(ThemeContext)
+  if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
   return ctx
 }
 

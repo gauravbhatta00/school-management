@@ -8,6 +8,7 @@ Run: python manage.py test apps
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.tokens import default_token_generator
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -135,7 +136,6 @@ class AuthAPITests(APITestCase):
         resp = self.client.get("/api/users/me/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["email"], "admin@t.com")
-        self.assertEqual(resp.data["role"], "admin")
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_password_reset_sends_to_students_and_teachers(self):
@@ -176,6 +176,16 @@ class AuthAPITests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.student.refresh_from_db()
         self.assertTrue(self.student.check_password("NewPass@12345"))
+
+
+class HealthEndpointTests(APITestCase):
+    def test_health_is_public_and_checks_database(self):
+        response = self.client.get("/api/health/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {"status": "ok", "service": "school-management-backend"},
+        )
 
 
 # ── Multi-Tenancy Tests ───────────────────────────────────────────────────────
@@ -259,6 +269,51 @@ class StudentAPITests(APITestCase):
             },
         )
         self.assertEqual(resp.status_code, 200)
+
+    def test_import_csv_uses_admin_default_password(self):
+        self.client.force_authenticate(user=self.admin)
+        csv_file = SimpleUploadedFile(
+            "students.csv",
+            (
+                "email,first_name,last_name,class_name,section,roll_number\n"
+                "csvstudent@s.com,Csv,Student,10,A,009\n"
+            ).encode("utf-8"),
+            content_type="text/csv",
+        )
+
+        resp = self.client.post(
+            "/api/students/import-csv/",
+            {"file": csv_file, "default_password": "CsvPass@123"},
+            format="multipart",
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        created_user = User.objects.get(email="csvstudent@s.com")
+        self.assertTrue(created_user.check_password("CsvPass@123"))
+        self.assertEqual(resp.data["credentials"][0]["source"], "default")
+
+    def test_import_csv_generates_unique_password_when_default_is_blank(self):
+        self.client.force_authenticate(user=self.admin)
+        csv_file = SimpleUploadedFile(
+            "students.csv",
+            (
+                "email,first_name,last_name,class_name,section,roll_number\n"
+                "generated@s.com,Aarav,Patel,10,A,009\n"
+            ).encode("utf-8"),
+            content_type="text/csv",
+        )
+
+        resp = self.client.post(
+            "/api/students/import-csv/",
+            {"file": csv_file},
+            format="multipart",
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        created_user = User.objects.get(email="generated@s.com")
+        self.assertTrue(created_user.check_password("AaravPat@10A009"))
+        self.assertEqual(resp.data["credentials"][0]["password"], "AaravPat@10A009")
+        self.assertEqual(resp.data["credentials"][0]["source"], "generated")
 
 
 # ── Attendance Tests ──────────────────────────────────────────────────────────

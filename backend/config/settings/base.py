@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "apps.exams",
     "apps.fees",
     "apps.notices",
+    "apps.backups",
 ]
 
 MIDDLEWARE = [
@@ -157,7 +158,7 @@ DJOSER = {
 # ─── CORS Configuration ───────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:5173,http://localhost:3000",
+    default="http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000",
     cast=lambda v: [s.strip() for s in v.split(",")],
 )
 CORS_ALLOW_CREDENTIALS = True
@@ -244,3 +245,12 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}

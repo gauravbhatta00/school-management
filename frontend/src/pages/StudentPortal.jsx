@@ -1,19 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import Calendar from 'react-calendar'
 import toast from 'react-hot-toast'
 import { communicationService, dashboardService, userService } from '../services/api'
 import { FullPageSpinner, StatCard, StatusBadge } from '../components/common'
 import { useAuth } from '../hooks'
 import { toMediaUrl } from '../utils/media'
-
-const CALENDAR_LEGEND = [
-  { key: 'holiday', label: 'Holiday', dotClass: 'calendar-dot-holiday' },
-  { key: 'activity', label: 'Activity', dotClass: 'calendar-dot-activity' },
-  { key: 'meeting', label: 'Meeting', dotClass: 'calendar-dot-meeting' },
-  { key: 'exam', label: 'Exam', dotClass: 'calendar-dot-exam' },
-  { key: 'other', label: 'Other', dotClass: 'calendar-dot-other' },
-  { key: 'weekend', label: 'Saturday Leave', dotClass: 'calendar-dot-weekend' },
-]
+import SchoolCalendar from '../components/calendar/SchoolCalendar'
+import { groupEventsByDate, getDayAgenda } from '../utils/calendarHelpers'
 
 export default function StudentPortal() {
   const { user, refreshUser } = useAuth()
@@ -48,33 +40,12 @@ export default function StudentPortal() {
     }
   }, [data])
 
-  const eventsByDate = useMemo(() => {
-    const byDate = {}
-    for (const evt of events) {
-      const spanDates = getDatesInRange(evt.start_date, evt.end_date)
-      for (const dateKey of spanDates) {
-        if (!byDate[dateKey]) byDate[dateKey] = []
-        byDate[dateKey].push(evt)
-      }
-    }
-    return byDate
-  }, [events])
+  const eventsByDate = useMemo(() => groupEventsByDate(events), [events])
 
-  const selectedDateKey = toDateKey(selectedDate)
-  const selectedDayEvents = useMemo(() => {
-    const baseEvents = [...(eventsByDate[selectedDateKey] || [])].sort(
-      (a, b) => new Date(a.start_date) - new Date(b.start_date)
-    )
-    if (isSaturday(selectedDate)) {
-      baseEvents.unshift({
-        id: `saturday-leave-${selectedDateKey}`,
-        title: 'Regular Leave Day',
-        start_date: selectedDateKey,
-        end_date: selectedDateKey,
-      })
-    }
-    return baseEvents
-  }, [eventsByDate, selectedDateKey])
+  const selectedDayEvents = useMemo(
+    () => getDayAgenda(eventsByDate, selectedDate),
+    [eventsByDate, selectedDate]
+  )
 
   if (loading) return <FullPageSpinner />
 
@@ -105,22 +76,22 @@ export default function StudentPortal() {
   const latestPayment = fees.recent_payments?.[0]
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in theme-white-preview">
       <div
         className="rounded-2xl p-6 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)', border: '1px solid rgba(45,212,191,0.25)' }}
+        style={{ background: 'linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%)', border: '1px solid rgba(255,255,255,0.2)' }}
       >
         <div
           className="absolute -right-12 -top-12 w-40 h-40 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, #5eead4, transparent)' }}
+          style={{ background: 'radial-gradient(circle, var(--accent), transparent)' }}
         />
         <div className="relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Inter, sans-serif' }}>
                 Welcome, {student.name || 'Student'}
               </h2>
-              <p className="text-teal-100 text-sm mt-1">
+              <p className="text-indigo-300 text-sm mt-1">
                 Class {student.class_name || '-'}-{student.section || '-'} | Roll No: {student.roll_number || '-'}
               </p>
             </div>
@@ -133,11 +104,14 @@ export default function StudentPortal() {
                   className="w-14 h-14 rounded-full object-cover border border-white/30"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg text-white border border-white/30">
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg text-white border border-white/30"
+                  style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                >
                   {student.name?.[0] || 'S'}
                 </div>
               )}
-              <label className="btn-ghost cursor-pointer text-xs px-3 py-1.5" style={{ color: '#d1fae5' }}>
+              <label className="btn-primary cursor-pointer text-xs px-3 py-1.5">
                 {uploadingPhoto ? 'Uploading…' : 'Update Photo'}
                 <input
                   type="file"
@@ -193,7 +167,7 @@ export default function StudentPortal() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl p-4" style={{ background: 'var(--bg-hover)' }}>
             <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Due Amount</p>
-            <p className="text-3xl font-bold mt-1" style={{ color: feeBalance > 0 ? 'var(--danger)' : 'var(--success)', fontFamily: 'Syne, sans-serif' }}>
+            <p className="text-3xl font-bold mt-1" style={{ color: feeBalance > 0 ? 'var(--danger)' : 'var(--success)', fontFamily: 'Inter, sans-serif' }}>
               ₹{feeBalance.toLocaleString('en-IN')}
             </p>
             <div className="mt-2"><StatusBadge status={feeStatus} /></div>
@@ -269,50 +243,7 @@ export default function StudentPortal() {
           <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             School Calendar
           </h3>
-          <div className="calendar-shell">
-            <Calendar
-              onClickDay={setSelectedDate}
-              value={selectedDate}
-              className="school-calendar"
-              tileClassName={({ date }) => {
-                const key = toDateKey(date)
-                const todayKey = toDateKey(new Date())
-                const classes = []
-                if (key === todayKey) classes.push('calendar-day-today')
-                if (isSaturday(date)) classes.push('calendar-day-saturday')
-                return classes.join(' ')
-              }}
-              tileContent={({ date, view }) => {
-                if (view !== 'month') return null
-                const key = toDateKey(date)
-                const dayEvents = eventsByDate[key] || []
-                const markers = isSaturday(date)
-                  ? [{ id: `weekend-${key}`, event_type: 'weekend', title: 'Regular Leave Day' }, ...dayEvents]
-                  : dayEvents
-                if (!markers.length) return null
-
-                return (
-                  <div className="calendar-dots">
-                    {markers.slice(0, 3).map((evt, idx) => (
-                      <span
-                        key={`${evt.id}-${idx}`}
-                        className={`calendar-dot calendar-dot-${evt.event_type || 'other'}`}
-                        title={evt.title}
-                      />
-                    ))}
-                  </div>
-                )
-              }}
-            />
-          </div>
-          <div className="calendar-legend mt-3">
-            {CALENDAR_LEGEND.map((item) => (
-              <div key={item.key} className="calendar-legend-item">
-                <span className={`calendar-dot ${item.dotClass}`} />
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
+          <SchoolCalendar events={events} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
           <div className="mt-3 space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               {`Agenda ${formatDate(selectedDate)}`}
@@ -334,33 +265,6 @@ export default function StudentPortal() {
       </div>
     </div>
   )
-}
-
-function toDateKey(dateValue) {
-  const date = new Date(dateValue)
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function getDatesInRange(start, end) {
-  if (!start || !end) return []
-  const startDate = new Date(`${start}T00:00:00`)
-  const endDate = new Date(`${end}T00:00:00`)
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return []
-
-  const dates = []
-  const cursor = new Date(startDate)
-  while (cursor <= endDate) {
-    dates.push(toDateKey(cursor))
-    cursor.setDate(cursor.getDate() + 1)
-  }
-  return dates
-}
-
-function isSaturday(dateValue) {
-  return new Date(dateValue).getDay() === 6
 }
 
 function formatDate(value) {

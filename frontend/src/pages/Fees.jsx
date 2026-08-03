@@ -193,19 +193,19 @@ function TrackerTab() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.35)' }}>
                     <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Required</p>
-                    <p className="text-xl font-bold mt-1" style={{ color: '#3b82f6', fontFamily: 'Syne' }}>
+                    <p className="text-xl font-bold mt-1" style={{ color: '#3b82f6', fontFamily: 'Inter' }}>
                       ₹{Number(summary.total_required || 0).toLocaleString()}
                     </p>
                   </div>
                   <div className="rounded-xl p-4" style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)' }}>
                     <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Paid</p>
-                    <p className="text-xl font-bold mt-1" style={{ color: '#10b981', fontFamily: 'Syne' }}>
+                    <p className="text-xl font-bold mt-1" style={{ color: '#10b981', fontFamily: 'Inter' }}>
                       ₹{Number(summary.total_paid || 0).toLocaleString()}
                     </p>
                   </div>
                   <div className="rounded-xl p-4" style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)' }}>
                     <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>Balance</p>
-                    <p className="text-xl font-bold mt-1" style={{ color: '#f59e0b', fontFamily: 'Syne' }}>
+                    <p className="text-xl font-bold mt-1" style={{ color: '#f59e0b', fontFamily: 'Inter' }}>
                       ₹{Number(summary.total_balance || 0).toLocaleString()}
                     </p>
                   </div>
@@ -408,10 +408,10 @@ function PaymentsTab() {
                     </span>
                   </td>
                   <td className="capitalize" style={{ color: 'var(--text-secondary)' }}>{p.payment_method}</td>
-                  <td style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>
+                  <td style={{ color: 'var(--text-muted)', fontFamily: 'Inter, sans-serif', fontSize: 12 }}>
                     {p.payment_date || '—'}
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
+                  <td style={{ color: 'var(--text-muted)', fontFamily: 'Inter, sans-serif', fontSize: 11 }}>
                     {p.transaction_id || '—'}
                   </td>
                 </tr>
@@ -544,7 +544,7 @@ function StructuresTab() {
             <div key={fs.id} className="card-hover">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-2xl font-bold" style={{ fontFamily: 'Syne', color: 'var(--text-primary)' }}>
+                  <p className="text-2xl font-bold" style={{ fontFamily: 'Inter', color: 'var(--text-primary)' }}>
                     ₹{Number(fs.amount).toLocaleString()}
                   </p>
                   <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Class {fs.class_name}</p>
@@ -637,7 +637,7 @@ function SummaryTab() {
           ].map(stat => (
             <div key={stat.label} className="rounded-2xl p-5" style={statStyle(stat.color)}>
               <p className="text-xs font-semibold uppercase tracking-wider opacity-70">{stat.label}</p>
-              <p className="text-3xl font-bold mt-2" style={{ fontFamily: 'Syne', color: stat.color }}>{stat.value}</p>
+              <p className="text-3xl font-bold mt-2" style={{ fontFamily: 'Inter', color: stat.color }}>{stat.value}</p>
             </div>
           ))}
         </div>

@@ -2,22 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
-import Calendar from 'react-calendar'
 import toast from 'react-hot-toast'
 import { communicationService, dashboardService, userService } from '../services/api'
 import { useAuth } from '../hooks'
 import { StatCard, FullPageSpinner } from '../components/common'
 import { toMediaUrl } from '../utils/media'
+import SchoolCalendar from '../components/calendar/SchoolCalendar'
+import { groupEventsByDate, getDayAgenda } from '../utils/calendarHelpers'
 
 const CHART_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6']
-const CALENDAR_LEGEND = [
-  { key: 'holiday', label: 'Holiday', dotClass: 'calendar-dot-holiday' },
-  { key: 'activity', label: 'Activity', dotClass: 'calendar-dot-activity' },
-  { key: 'meeting', label: 'Meeting', dotClass: 'calendar-dot-meeting' },
-  { key: 'exam', label: 'Exam', dotClass: 'calendar-dot-exam' },
-  { key: 'other', label: 'Other', dotClass: 'calendar-dot-other' },
-  { key: 'weekend', label: 'Saturday Leave', dotClass: 'calendar-dot-weekend' },
-]
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
@@ -56,33 +49,12 @@ export default function Dashboard() {
       .finally(() => setLoading(false))
   }, [])
 
-  const eventsByDate = useMemo(() => {
-    const byDate = {}
-    for (const evt of events) {
-      const spanDates = getDatesInRange(evt.start_date, evt.end_date)
-      for (const dateKey of spanDates) {
-        if (!byDate[dateKey]) byDate[dateKey] = []
-        byDate[dateKey].push(evt)
-      }
-    }
-    return byDate
-  }, [events])
+  const eventsByDate = useMemo(() => groupEventsByDate(events), [events])
 
-  const selectedDateKey = toDateKey(selectedDate)
-  const selectedDayEvents = useMemo(() => {
-    const baseEvents = [...(eventsByDate[selectedDateKey] || [])].sort(
-      (a, b) => new Date(a.start_date) - new Date(b.start_date)
-    )
-    if (isSaturday(selectedDate)) {
-      baseEvents.unshift({
-        id: `saturday-leave-${selectedDateKey}`,
-        title: 'Regular Leave Day',
-        start_date: selectedDateKey,
-        end_date: selectedDateKey,
-      })
-    }
-    return baseEvents
-  }, [eventsByDate, selectedDateKey])
+  const selectedDayEvents = useMemo(
+    () => getDayAgenda(eventsByDate, selectedDate),
+    [eventsByDate, selectedDate]
+  )
 
   const handlePhotoUpdate = async (file) => {
     if (!file) return
@@ -114,23 +86,23 @@ export default function Dashboard() {
     : []
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in theme-white-preview">
       {/* ── Welcome banner ── */}
       <div
         className="rounded-2xl p-6 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%)', border: '1px solid rgba(99,102,241,0.3)' }}
+        style={{ background: 'linear-gradient(135deg, #3730a3 0%, #1e1b4b 100%)', border: '1px solid rgba(255,255,255,0.2)' }}
       >
         <div
           className="absolute -right-12 -top-12 w-48 h-48 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, #818cf8, transparent)' }}
+          style={{ background: 'radial-gradient(circle, var(--accent), transparent)' }}
         />
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
-              Good {getGreeting()}, {user?.first_name}! 👋
+            <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Inter, sans-serif' }}>
+              Good {getGreeting()}, {user?.first_name}!
             </h2>
             <p className="text-indigo-300 text-sm mt-1">
-              {user?.school_name} · Here's what's happening today
+              {user?.school_name} · Here&apos;s what&apos;s happening today
             </p>
           </div>
 
@@ -151,7 +123,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <label className="btn-ghost cursor-pointer text-xs px-3 py-1.5" style={{ color: '#c7d2fe' }}>
+              <label className="btn-primary cursor-pointer text-xs px-3 py-1.5">
                 {uploadingPhoto ? 'Uploading...' : 'Update Photo'}
                 <input
                   type="file"
@@ -175,7 +147,7 @@ export default function Dashboard() {
           label="Total Students"
           value={stats?.total_students ?? '—'}
           sub="Enrolled this year"
-          color="#6366f1"
+          color="#ffffff"
           icon={<PeopleIcon />}
         />
         <StatCard
@@ -206,7 +178,7 @@ export default function Dashboard() {
         {/* Bar chart */}
         <div className="card lg:col-span-2">
           <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Today's Snapshot
+            Today&apos;s Snapshot
           </h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={chartData} barSize={28} barCategoryGap="30%">
@@ -246,7 +218,7 @@ export default function Dashboard() {
           className="rounded-xl px-5 py-4 text-sm"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
         >
-          💡 Use the <b style={{ color: 'var(--text-primary)' }}>Attendance</b> page to mark today's class,
+          💡 Use the <b style={{ color: 'var(--text-primary)' }}>Attendance</b> page to mark today&apos;s class,
           or <b style={{ color: 'var(--text-primary)' }}>Examinations</b> to enter results.
         </div>
       )}
@@ -274,50 +246,7 @@ export default function Dashboard() {
           <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Calendar
           </h3>
-          <div className="calendar-shell">
-            <Calendar
-              onClickDay={setSelectedDate}
-              value={selectedDate}
-              className="school-calendar"
-              tileClassName={({ date }) => {
-                const key = toDateKey(date)
-                const todayKey = toDateKey(new Date())
-                const classes = []
-                if (key === todayKey) classes.push('calendar-day-today')
-                if (isSaturday(date)) classes.push('calendar-day-saturday')
-                return classes.join(' ')
-              }}
-              tileContent={({ date, view }) => {
-                if (view !== 'month') return null
-                const key = toDateKey(date)
-                const dayEvents = eventsByDate[key] || []
-                const markers = isSaturday(date)
-                  ? [{ id: `weekend-${key}`, event_type: 'weekend', title: 'Regular Leave Day' }, ...dayEvents]
-                  : dayEvents
-                if (!markers.length) return null
-
-                return (
-                  <div className="calendar-dots">
-                    {markers.slice(0, 3).map((evt, idx) => (
-                      <span
-                        key={`${evt.id}-${idx}`}
-                        className={`calendar-dot calendar-dot-${evt.event_type || 'other'}`}
-                        title={evt.title}
-                      />
-                    ))}
-                  </div>
-                )
-              }}
-            />
-          </div>
-          <div className="calendar-legend mt-3">
-            {CALENDAR_LEGEND.map((item) => (
-              <div key={item.key} className="calendar-legend-item">
-                <span className={`calendar-dot ${item.dotClass}`} />
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
+          <SchoolCalendar events={events} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
           <div className="mt-3 space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
               {`Agenda ${formatDate(selectedDate)}`}
@@ -339,33 +268,6 @@ export default function Dashboard() {
       </div>
     </div>
   )
-}
-
-function toDateKey(dateValue) {
-  const date = new Date(dateValue)
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function getDatesInRange(start, end) {
-  if (!start || !end) return []
-  const startDate = new Date(`${start}T00:00:00`)
-  const endDate = new Date(`${end}T00:00:00`)
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return []
-
-  const dates = []
-  const cursor = new Date(startDate)
-  while (cursor <= endDate) {
-    dates.push(toDateKey(cursor))
-    cursor.setDate(cursor.getDate() + 1)
-  }
-  return dates
-}
-
-function isSaturday(dateValue) {
-  return new Date(dateValue).getDay() === 6
 }
 
 function formatDate(value) {
@@ -417,13 +319,13 @@ function AttendanceRing({ rate }) {
         />
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#6366f1" />
+            <stop offset="0%" style={{ stopColor: 'var(--accent)' }} />
             <stop offset="100%" stopColor="#10b981" />
           </linearGradient>
         </defs>
       </svg>
       <div className="text-center">
-        <p className="text-3xl font-bold text-gradient" style={{ fontFamily: 'Syne, sans-serif' }}>
+        <p className="text-3xl font-bold text-gradient" style={{ fontFamily: 'Inter, sans-serif' }}>
           {rate}%
         </p>
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>today</p>

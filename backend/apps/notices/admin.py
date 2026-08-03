@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Notice, CalendarEvent
+from .models import Notice, CalendarEvent, Notification
 
 
 @admin.register(Notice)
@@ -15,3 +15,10 @@ class CalendarEventAdmin(admin.ModelAdmin):
     list_display = ("title", "school", "event_type", "start_date", "end_date")
     list_filter = ("school", "event_type")
     search_fields = ("title", "description")
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ("title", "recipient", "school", "is_read", "created_at")
+    list_filter = ("school", "is_read")
+    search_fields = ("title", "message", "recipient__email")

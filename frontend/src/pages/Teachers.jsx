@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { teacherService, userService } from '../services/api'
 import { DataTable, Modal, FormField, Spinner, ErrorAlert, Pagination } from '../components/common'
 import toast from 'react-hot-toast'
@@ -7,6 +8,7 @@ import { toMediaUrl } from '../utils/media'
 
 export default function Teachers() {
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
   const [teachers,  setTeachers]  = useState([])
   const [count,     setCount]     = useState(0)
   const [page,      setPage]      = useState(1)
@@ -15,7 +17,7 @@ export default function Teachers() {
   const [editItem,  setEditItem]  = useState(null)
   const [prefillUser, setPrefillUser] = useState(null)
   const [delItem,   setDelItem]   = useState(null)
-  const [search,    setSearch]    = useState('')
+  const [search,    setSearch]    = useState(searchParams.get('q') || '')
   const PAGE_SIZE = 20
 
   const fetch = useCallback(async () => {

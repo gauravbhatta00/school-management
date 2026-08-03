@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { studentService, userService } from '../services/api'
 import { useAuth } from '../hooks'
 import {
@@ -13,6 +14,7 @@ const SECTIONS = ['A', 'B', 'C', 'D']
 
 export default function Students() {
   const { isAdmin, user } = useAuth()
+  const [searchParams] = useSearchParams()
   const [students,   setStudents]   = useState([])
   const [count,      setCount]      = useState(0)
   const [page,       setPage]       = useState(1)
@@ -21,8 +23,9 @@ export default function Students() {
   const [editTarget, setEditTarget] = useState(null)
   const [viewTarget, setViewTarget] = useState(null)
   const [delTarget,  setDelTarget]  = useState(null)
-  const [filters,    setFilters]    = useState({ class_name: '', section: '', search: '' })
+  const [filters,    setFilters]    = useState({ class_name: '', section: '', search: searchParams.get('q') || '' })
   const [importResult, setImportResult] = useState(null)
+  const [csvPassword, setCsvPassword] = useState('')
   const fileInputRef = useRef(null)
 
   const PAGE_SIZE = 20
@@ -68,7 +71,7 @@ export default function Students() {
     if (!file) return
 
     try {
-      const { data } = await studentService.importCsv(file)
+      const { data } = await studentService.importCsv(file, csvPassword)
       setImportResult(data)
       if (data.failed_count > 0) {
         toast.success(`Imported ${data.created_count} students. ${data.failed_count} rows failed.`)
@@ -152,7 +155,7 @@ export default function Students() {
           <p className="page-subtitle">{count} total students enrolled</p>
         </div>
         {isAdmin && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 items-end">
             <input
               ref={fileInputRef}
               type="file"
@@ -160,6 +163,15 @@ export default function Students() {
               className="hidden"
               onChange={handleCsvChange}
             />
+            <FormField label="Shared CSV Password">
+              <input
+                className="input w-44"
+                type="password"
+                value={csvPassword}
+                onChange={(e) => setCsvPassword(e.target.value)}
+                placeholder="Auto-generate"
+              />
+            </FormField>
             <button className="btn-ghost" onClick={openCsvPicker}>
               Upload CSV
             </button>
@@ -190,6 +202,33 @@ export default function Students() {
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
             Required CSV columns: {importResult.required_columns?.join(', ')}
           </p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Optional CSV columns: {importResult.optional_columns?.join(', ')}
+          </p>
+          {importResult.credentials?.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr style={{ color: 'var(--text-muted)' }}>
+                    <th className="text-left py-1 pr-3 font-medium">Student</th>
+                    <th className="text-left py-1 pr-3 font-medium">Email</th>
+                    <th className="text-left py-1 pr-3 font-medium">Password</th>
+                    <th className="text-left py-1 font-medium">Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {importResult.credentials.map((item) => (
+                    <tr key={item.email} style={{ color: 'var(--text-primary)' }}>
+                      <td className="py-1 pr-3">{item.full_name}</td>
+                      <td className="py-1 pr-3">{item.email}</td>
+                      <td className="py-1 pr-3 font-mono">{item.password}</td>
+                      <td className="py-1">{item.source}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -341,16 +380,23 @@ function StudentModal({ open, onClose, initial, schoolId, onSuccess }) {
           throw new Error('Student account was created without a user id. Please try again.')
         }
 
-        // 2. Create student profile
-        await studentService.create({
-          user: newUser.id,
-          class_name: form.class_name,
-          section: form.section,
-          roll_number: form.roll_number,
-          parent_contact: form.parent_contact,
-          address: form.address,
-          date_of_birth: form.date_of_birth || undefined,
-        })
+        // 2. Create student profile. If this fails, the user account from step 1
+        // would otherwise be left behind with no profile (broken login). Roll it
+        // back so the admin can safely retry with the same email.
+        try {
+          await studentService.create({
+            user: newUser.id,
+            class_name: form.class_name,
+            section: form.section,
+            roll_number: form.roll_number,
+            parent_contact: form.parent_contact,
+            address: form.address,
+            date_of_birth: form.date_of_birth || undefined,
+          })
+        } catch (profileError) {
+          await userService.delete(newUser.id).catch(() => {})
+          throw profileError
+        }
         toast.success('Student added successfully')
       }
       onSuccess()

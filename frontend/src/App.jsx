@@ -18,6 +18,7 @@ import Exams       from './pages/Exams'
 import Subjects    from './pages/Subjects'
 import Fees        from './pages/Fees'
 import CalendarHub from './pages/CalendarHub'
+import Settings    from './pages/Settings'
 
 // ── Protected Route ─────────────────────────────────────────────────────────
 function ProtectedRoute({ children, allowedRoles }) {
@@ -131,7 +132,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-      </Route>
 
         <Route
           path="applications"
@@ -159,6 +159,17 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+      </Route>
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

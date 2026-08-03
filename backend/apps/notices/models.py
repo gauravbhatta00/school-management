@@ -32,6 +32,36 @@ class Notice(models.Model):
         return self.title
 
 
+class Notification(models.Model):
+    """A personal, per-user notification (e.g. 'your application was approved')."""
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="notifications"
+    )
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    link = models.CharField(
+        max_length=255, blank=True, help_text="Frontend route to open on click, e.g. /applications"
+    )
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["recipient", "is_read"]),
+            models.Index(fields=["recipient", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.title} -> {self.recipient}"
+
+
 class CalendarEvent(models.Model):
     class EventType(models.TextChoices):
         EXAM = "exam", "Exam"

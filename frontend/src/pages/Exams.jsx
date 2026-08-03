@@ -318,7 +318,7 @@ function ResultCardTab() {
             className="rounded-xl p-5 relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, #312e81, #1e1b4b)', border: '1px solid rgba(99,102,241,0.3)' }}
           >
-            <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Syne' }}>Result Card</h2>
+            <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Inter' }}>Result Card</h2>
             <div className="flex flex-wrap gap-6 mt-3">
               <div>
                 <p className="text-xs text-indigo-300">Student</p>

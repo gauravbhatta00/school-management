@@ -131,8 +131,10 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], permission_classes=[IsAdminOrTeacher])
     def teacher_response(self, request, pk=None):
         """
-        Teachers respond to leave requests (approve/reject directly).
-        Only for leave requests.
+        Teacher reviews an application. For leave requests, the decision is
+        final. For other types, this just records the teacher's review and
+        moves the application to admin for the final decision — see
+        TeacherApplicationReviewSerializer.update().
         """
         if request.user.role != "teacher":
             return Response(
@@ -141,12 +143,6 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             )
 
         application = self.get_object()
-
-        if application.application_type != Application.Type.LEAVE_REQUEST:
-            return Response(
-                {"detail": "This endpoint is only for leave requests."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         serializer = TeacherApplicationReviewSerializer(
             application, data=request.data, context={"request": request}

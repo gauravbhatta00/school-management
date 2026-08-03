@@ -9,7 +9,10 @@ dj-database-url
 Pillow
 python-decouple
 gunicorn
+waitress
 whitenoise
+django-storages
+boto3
 factory-boy
 isort
 pytest-django

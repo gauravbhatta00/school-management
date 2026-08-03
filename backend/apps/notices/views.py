@@ -1,12 +1,14 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.accounts.permissions import IsSchoolAdmin
 
-from .models import Notice, CalendarEvent
-from .serializers import NoticeSerializer, CalendarEventSerializer
+from .models import Notice, CalendarEvent, Notification
+from .serializers import NoticeSerializer, CalendarEventSerializer, NotificationSerializer
 
 
 class NoticeViewSet(viewsets.ModelViewSet):
@@ -32,6 +34,22 @@ class NoticeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(school=self.request.user.school, created_by=self.request.user)
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    """Personal notifications for the logged-in user (e.g. application decisions)."""
+
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "patch", "post", "head", "options"]
+
+    def get_queryset(self):
+        return Notification.objects.filter(recipient=self.request.user)
+
+    @action(detail=False, methods=["post"])
+    def mark_all_read(self, request):
+        self.get_queryset().filter(is_read=False).update(is_read=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CalendarEventViewSet(viewsets.ModelViewSet):

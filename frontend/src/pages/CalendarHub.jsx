@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
-import Calendar from 'react-calendar'
 
 import { communicationService } from '../services/api'
 import { useAuth } from '../hooks'
+import SchoolCalendar from '../components/calendar/SchoolCalendar'
+import { toDateKey, isSaturday, groupEventsByDate, getDayAgenda } from '../utils/calendarHelpers'
 
 const EVENT_BADGES = {
   exam: 'badge-blue',
@@ -12,15 +13,6 @@ const EVENT_BADGES = {
   activity: 'badge-purple',
   other: 'badge-gray',
 }
-
-const CALENDAR_LEGEND = [
-  { key: 'holiday', label: 'Holiday', dotClass: 'calendar-dot-holiday' },
-  { key: 'activity', label: 'Activity', dotClass: 'calendar-dot-activity' },
-  { key: 'meeting', label: 'Meeting', dotClass: 'calendar-dot-meeting' },
-  { key: 'exam', label: 'Exam', dotClass: 'calendar-dot-exam' },
-  { key: 'other', label: 'Other', dotClass: 'calendar-dot-other' },
-  { key: 'weekend', label: 'Saturday Leave', dotClass: 'calendar-dot-weekend' },
-]
 
 export default function CalendarHub() {
   const { role } = useAuth()
@@ -59,37 +51,12 @@ export default function CalendarHub() {
       .slice(0, 8)
   }, [events])
 
-  const eventsByDate = useMemo(() => {
-    const byDate = {}
+  const eventsByDate = useMemo(() => groupEventsByDate(events), [events])
 
-    for (const evt of events) {
-      const spanDates = getDatesInRange(evt.start_date, evt.end_date)
-      for (const dateKey of spanDates) {
-        if (!byDate[dateKey]) byDate[dateKey] = []
-        byDate[dateKey].push(evt)
-      }
-    }
-
-    return byDate
-  }, [events])
-
-  const selectedDateKey = toDateKey(selectedDate)
-  const selectedDayEvents = useMemo(() => {
-    const baseEvents = [...(eventsByDate[selectedDateKey] || [])].sort(
-      (a, b) => new Date(a.start_date) - new Date(b.start_date)
-    )
-    if (isSaturday(selectedDate)) {
-      baseEvents.unshift({
-        id: `saturday-leave-${selectedDateKey}`,
-        title: 'Regular Leave Day',
-        event_type: 'holiday',
-        start_date: selectedDateKey,
-        end_date: selectedDateKey,
-        description: 'Saturday is a regular leave day.',
-      })
-    }
-    return baseEvents
-  }, [eventsByDate, selectedDateKey])
+  const selectedDayEvents = useMemo(
+    () => getDayAgenda(eventsByDate, selectedDate),
+    [eventsByDate, selectedDate]
+  )
 
   useEffect(() => {
     fetchData()
@@ -224,50 +191,8 @@ export default function CalendarHub() {
             <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
               Click a date, then use Create Event to add holiday, activity, or event.
             </p>
-            <div className="calendar-shell mt-4">
-              <Calendar
-                onClickDay={handleDateClick}
-                value={selectedDate}
-                className="school-calendar"
-                tileClassName={({ date }) => {
-                  const key = toDateKey(date)
-                  const todayKey = toDateKey(new Date())
-                  const classes = []
-                  if (key === todayKey) classes.push('calendar-day-today')
-                  if (isSaturday(date)) classes.push('calendar-day-saturday')
-                  return classes.join(' ')
-                }}
-                tileContent={({ date, view }) => {
-                  if (view !== 'month') return null
-                  const key = toDateKey(date)
-                  const dayEvents = eventsByDate[key] || []
-                  const markers = isSaturday(date)
-                    ? [{ id: `weekend-${key}`, event_type: 'weekend', title: 'Regular Leave Day' }, ...dayEvents]
-                    : dayEvents
-                  if (!markers.length) return null
-
-                  return (
-                    <div className="calendar-dots">
-                      {markers.slice(0, 3).map((evt, idx) => (
-                        <span
-                          key={`${evt.id}-${idx}`}
-                          className={`calendar-dot calendar-dot-${evt.event_type || 'other'}`}
-                          title={`${evt.title} (${evt.event_type})`}
-                        />
-                      ))}
-                    </div>
-                  )
-                }}
-              />
-            </div>
-
-            <div className="calendar-legend mt-3">
-              {CALENDAR_LEGEND.map((item) => (
-                <div key={item.key} className="calendar-legend-item">
-                  <span className={`calendar-dot ${item.dotClass}`} />
-                  <span>{item.label}</span>
-                </div>
-              ))}
+            <div className="mt-4">
+              <SchoolCalendar events={events} selectedDate={selectedDate} onSelectDate={handleDateClick} />
             </div>
 
             <div className="mt-4 flex justify-end">
@@ -360,51 +285,7 @@ export default function CalendarHub() {
             </p>
           </div>
 
-          <div className="calendar-shell">
-            <Calendar
-              onClickDay={handleDateClick}
-              value={selectedDate}
-              className="school-calendar"
-              tileClassName={({ date }) => {
-                const key = toDateKey(date)
-                const todayKey = toDateKey(new Date())
-                const classes = []
-                if (key === todayKey) classes.push('calendar-day-today')
-                if (isSaturday(date)) classes.push('calendar-day-saturday')
-                return classes.join(' ')
-              }}
-              tileContent={({ date, view }) => {
-                if (view !== 'month') return null
-                const key = toDateKey(date)
-                const dayEvents = eventsByDate[key] || []
-                const markers = isSaturday(date)
-                  ? [{ id: `weekend-${key}`, event_type: 'weekend', title: 'Regular Leave Day' }, ...dayEvents]
-                  : dayEvents
-                if (!markers.length) return null
-
-                return (
-                  <div className="calendar-dots">
-                    {markers.slice(0, 3).map((evt, idx) => (
-                      <span
-                        key={`${evt.id}-${idx}`}
-                        className={`calendar-dot calendar-dot-${evt.event_type || 'other'}`}
-                        title={`${evt.title} (${evt.event_type})`}
-                      />
-                    ))}
-                  </div>
-                )
-              }}
-            />
-          </div>
-
-          <div className="calendar-legend mt-3">
-            {CALENDAR_LEGEND.map((item) => (
-              <div key={item.key} className="calendar-legend-item">
-                <span className={`calendar-dot ${item.dotClass}`} />
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
+          <SchoolCalendar events={events} selectedDate={selectedDate} onSelectDate={handleDateClick} />
         </div>
 
         <div className="card">
@@ -502,37 +383,9 @@ export default function CalendarHub() {
   )
 }
 
-function toDateKey(dateValue) {
-  const date = new Date(dateValue)
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
-function getDatesInRange(start, end) {
-  if (!start || !end) return []
-
-  const startDate = new Date(`${start}T00:00:00`)
-  const endDate = new Date(`${end}T00:00:00`)
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return []
-
-  const dates = []
-  const cursor = new Date(startDate)
-  while (cursor <= endDate) {
-    dates.push(toDateKey(cursor))
-    cursor.setDate(cursor.getDate() + 1)
-  }
-  return dates
-}
-
 function toLabel(value) {
   if (!value) return 'Other'
   return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-function isSaturday(dateValue) {
-  return new Date(dateValue).getDay() === 6
 }
 
 function formatDate(value) {

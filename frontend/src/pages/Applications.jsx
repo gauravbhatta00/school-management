@@ -64,9 +64,15 @@ export default function Applications() {
       }
     }
 
+    const payload = {
+      ...formData,
+      start_date: formData.application_type === 'leave_request' ? formData.start_date : null,
+      end_date: formData.application_type === 'leave_request' ? formData.end_date : null,
+    }
+
     try {
       setLoading(true)
-      await applicationService.create(formData)
+      await applicationService.create(payload)
       toast.success('Application submitted successfully')
       setShowForm(false)
       setFormData({
@@ -102,7 +108,7 @@ export default function Applications() {
     },
     {
       label: 'Pending',
-      value: applications.filter((a) => a.status === 'pending').length,
+      value: applications.filter((a) => a.status === 'pending' || a.status === 'teacher_reviewed').length,
       className: 'bg-amber-500/10',
     },
     {

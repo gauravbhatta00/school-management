@@ -83,12 +83,12 @@ export default function ForgotPassword() {
           >
             E
           </div>
-          <span className="font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+          <span className="font-bold" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>
             EduCore
           </span>
         </div>
 
-        <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+        <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>
           {isConfirmMode ? 'Reset password' : 'Forgot password'}
         </h2>
         <p className="text-sm mb-8" style={{ color: 'var(--text-secondary)' }}>

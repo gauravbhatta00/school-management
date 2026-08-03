@@ -8,11 +8,10 @@
  */
 
 import axios from 'axios'
-
-const BASE_URL = import.meta.env.VITE_API_URL || ''
+import { API_BASE_URL } from '../config/runtime'
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -69,7 +68,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post(`${BASE_URL}/api/auth/jwt/refresh/`, {
+        const { data } = await axios.post(`${API_BASE_URL}/api/auth/jwt/refresh/`, {
           refresh: refreshToken,
         })
         localStorage.setItem('access_token', data.access)
@@ -94,7 +93,11 @@ function logout() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
   localStorage.removeItem('user')
-  window.location.href = '/login'
+  // The desktop build uses HashRouter (see main.jsx) — an absolute path
+  // here would navigate the file:// document itself rather than the
+  // in-page route, so redirect through the hash instead. Normal web builds
+  // are unaffected: import.meta.env.MODE is never "desktop" for them.
+  window.location.href = import.meta.env.MODE === 'desktop' ? '#/login' : '/login'
 }
 
 const multipartConfig = (data) => (
@@ -138,9 +141,10 @@ export const studentService = {
   list:   (params) => api.get('/api/students/', { params }),
   get:    (id)     => api.get(`/api/students/${id}/`),
   create: (data)   => api.post('/api/students/', data),
-  importCsv: (file) => {
+  importCsv: (file, defaultPassword) => {
     const formData = new FormData()
     formData.append('file', file)
+    if (defaultPassword) formData.append('default_password', defaultPassword)
     return api.post('/api/students/import-csv/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
@@ -232,6 +236,27 @@ export const communicationService = {
   events:       (params) => api.get('/api/calendar-events/', { params }),
   createEvent:  (data)   => api.post('/api/calendar-events/', data),
   updateEvent:  (id, d)  => api.patch(`/api/calendar-events/${id}/`, d),
+}
+
+export const notificationService = {
+  list:         (params) => api.get('/api/notifications/', { params }),
+  markRead:     (id)     => api.patch(`/api/notifications/${id}/`, { is_read: true }),
+  markAllRead:  ()       => api.post('/api/notifications/mark_all_read/'),
+}
+
+// Stage 5: admin-only backup/restore-validation/integrity/diagnostics.
+// Every operation here that touches the live database or filesystem runs
+// server-side while the backend is running as normal — only the final
+// restore file-swap (desktop/utils/restore.cjs) needs Electron directly.
+export const backupService = {
+  list:            ()       => api.get('/api/backups/'),
+  create:          (kind = 'manual') => api.post('/api/backups/create/', { kind }),
+  validate:        (path)   => api.post('/api/backups/validate/', { path }),
+  stage:           (path)   => api.post('/api/backups/stage/', { path }),
+  integrityCheck:  ()       => api.get('/api/backups/integrity-check/'),
+  diagnostics:     ()       => api.get('/api/backups/diagnostics/'),
+  getConfig:       ()       => api.get('/api/backups/config/'),
+  updateConfig:    (data)   => api.put('/api/backups/config/', data),
 }
 
 export const userService = {

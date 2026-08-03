@@ -121,9 +121,19 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    path: '/settings',
+    label: 'Settings',
+    roles: ['admin'],
+    icon: (
+      <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+        <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose = () => {} }) {
   const { user, role, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -137,26 +147,34 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 top-0 h-screen w-60 flex flex-col z-40"
+      className={`fixed left-0 top-0 h-screen w-64 flex flex-col z-40 transition-transform duration-300 ease-out
+        lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
       style={{
         background: 'var(--bg-secondary)',
         borderRight: '1px solid var(--border)',
       }}
     >
       {/* ── Brand ── */}
-      <div className="px-5 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
-        <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-sm glow-sm"
-          style={{ background: 'var(--accent)' }}
-        >
-          E
+      <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-sm glow-sm"
+            style={{ background: 'var(--accent)' }}
+          >
+            E
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ fontFamily: 'Inter, sans-serif', color: 'var(--text-primary)' }}>
+              EduCore
+            </p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>School Management</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
-            EduCore
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>School Management</p>
-        </div>
+        <button className="icon-btn lg:hidden" onClick={onClose} aria-label="Close menu">
+          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
       </div>
 
       {/* ── User pill ── */}
@@ -197,25 +215,28 @@ export default function Sidebar() {
             key={link.path}
             to={link.path}
             end={link.exact}
+            onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+              `relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive ? 'text-white' : ''
               }`
             }
             style={({ isActive }) => ({
-              background: isActive ? 'var(--accent)' : 'transparent',
+              background: isActive
+                ? 'linear-gradient(135deg, var(--accent), #4f46e5)'
+                : 'transparent',
               color: isActive ? '#fff' : 'var(--text-secondary)',
-              boxShadow: isActive ? '0 0 16px var(--accent-glow)' : 'none',
+              boxShadow: isActive ? '0 4px 16px var(--accent-glow)' : 'none',
             })}
             onMouseEnter={(e) => {
-              if (!e.currentTarget.style.background.includes('var(--accent)')) {
+              if (!e.currentTarget.style.background.includes('gradient')) {
                 e.currentTarget.style.background = 'var(--bg-hover)'
                 e.currentTarget.style.color = 'var(--text-primary)'
               }
             }}
             onMouseLeave={(e) => {
               if (!e.currentTarget.classList.contains('active') &&
-                  !e.currentTarget.style.background.includes('var(--accent)')) {
+                  !e.currentTarget.style.background.includes('gradient')) {
                 e.currentTarget.style.background = 'transparent'
                 e.currentTarget.style.color = 'var(--text-secondary)'
               }

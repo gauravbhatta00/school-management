@@ -1,0 +1,33 @@
+{
+  "name": "school-management-desktop",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Electron desktop shell orchestration for the School Management System (Stage 4: packaged with Electron Forge into a Windows installer).",
+  "author": "GIgaBYte6610",
+  "license": "UNLICENSED",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "dev:web": "npm run dev --prefix frontend",
+    "dev:backend": "node desktop/utils/run-python.cjs backend/manage.py runserver 127.0.0.1:8000",
+    "dev:backend:desktop": "node desktop/utils/run-python.cjs backend/desktop_launcher.py",
+    "dev:frontend:electron": "npm run dev --prefix frontend -- --mode electron",
+    "dev:electron": "electron desktop/main.cjs",
+    "dev:desktop": "concurrently -k -n VITE,ELECTRON -c blue,magenta \"npm:dev:frontend:electron\" \"npm:dev:electron\"",
+    "build:backend": "node desktop/utils/run-python.cjs backend/scripts/build_backend.py",
+    "build:frontend:desktop": "npm run build:desktop --prefix frontend",
+    "validate:desktop": "node desktop/scripts/validate-resources.cjs",
+    "build:desktop": "npm run build:backend && npm run build:frontend:desktop && npm run validate:desktop",
+    "package:desktop": "npm run build:desktop && electron-forge package",
+    "make:desktop": "npm run build:desktop && electron-forge make",
+    "verify:release": "node desktop/scripts/verify-release.cjs"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "concurrently": "^10.0.4",
+    "electron": "^43.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

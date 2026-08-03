@@ -15,8 +15,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
-    default="YOUR_SERVER_IP,localhost,127.0.0.1",
-    cast=lambda v: [s.strip() for s in v.split(",")],
+    default="YOUR_SERVER_IP,localhost,127.0.0.1,qubinery.space,www.qubinery.space",
+    cast=lambda v: [s.strip() for s in v.split(",") if s.strip()],
 )
 
 # =============================================================================
@@ -42,14 +42,44 @@ DATABASES = {
 # STATIC & MEDIA FILES
 # =============================================================================
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+INSTALLED_APPS += ["storages"]
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-1")
+AWS_S3_CUSTOM_DOMAIN = config("AWS_S3_CUSTOM_DOMAIN", default="").strip()
+if not AWS_S3_CUSTOM_DOMAIN:
+    AWS_S3_CUSTOM_DOMAIN = (
+        f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+    )
+AWS_S3_OBJECT_PARAMETERS = {
+    "CacheControl": config("AWS_S3_CACHE_CONTROL", default="max-age=86400")
+}
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = config("AWS_QUERYSTRING_AUTH", default=False, cast=bool)
 
-# WhiteNoise
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATIC_LOCATION = config("AWS_STATIC_LOCATION", default="static")
+MEDIA_LOCATION = config("AWS_MEDIA_LOCATION", default="media")
+
+STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/"
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIA_LOCATION}/"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "location": MEDIA_LOCATION,
+            "file_overwrite": False,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "location": STATIC_LOCATION,
+        },
+    },
+}
 
 # =============================================================================
 # SECURITY HEADERS
@@ -97,6 +127,7 @@ SECURE_HSTS_PRELOAD = True
 
 # Behind reverse proxy (Nginx)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 # =============================================================================
 # CORS / CSRF
@@ -104,8 +135,8 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-    default="http://YOUR_SERVER_IP,https://YOUR_SERVER_IP",
-    cast=lambda v: [s.strip() for s in v.split(",") if s],
+    default="http://YOUR_SERVER_IP,https://YOUR_SERVER_IP,https://qubinery.space,https://www.qubinery.space",
+    cast=lambda v: [s.strip() for s in v.split(",") if s.strip()],
 )
 
 # =============================================================================
