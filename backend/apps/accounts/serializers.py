@@ -40,6 +40,23 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.school.name if obj.school else None
 
 
+def _apply_first_user_bootstrap(validated_data):
+    """
+    The very first account ever created on an installation becomes a true
+    superuser (is_staff + is_superuser + role=admin), regardless of what
+    role was requested. Without this there is no way to create the first
+    School at all: School creation requires is_staff, and nothing in the
+    registration flow can otherwise set that flag or link an admin to a
+    school. Only applies once — as soon as any user row exists, later
+    registrations get exactly the role/school they requested.
+    """
+    if not User.objects.exists():
+        validated_data["is_staff"] = True
+        validated_data["is_superuser"] = True
+        validated_data["role"] = User.Role.ADMIN
+    return validated_data
+
+
 class UserCreateSerializer(DjoserUserCreateSerializer):
     """
     Extends Djoser's create serializer to include role and school.
@@ -70,6 +87,7 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
         # If requester is authenticated and non-superuser, force their school
         if request and request.user.is_authenticated and not request.user.is_superuser:
             validated_data["school"] = request.user.school
+        validated_data = _apply_first_user_bootstrap(validated_data)
         return super().create(validated_data)
 
 
@@ -105,6 +123,7 @@ class UserCreatePasswordRetypeSerializer(DjoserUserCreatePasswordRetypeSerialize
         request = self.context.get("request")
         if request and request.user.is_authenticated and not request.user.is_superuser:
             validated_data["school"] = request.user.school
+        validated_data = _apply_first_user_bootstrap(validated_data)
         return super().create(validated_data)
 
 
