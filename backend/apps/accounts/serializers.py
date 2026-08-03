@@ -50,6 +50,7 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
         fields = DjoserUserCreateSerializer.Meta.fields + ("role", "school")
 
     def validate(self, attrs):
+        attrs = super().validate(attrs)
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             if request.user.is_superuser and not attrs.get("school"):
@@ -85,6 +86,7 @@ class UserCreatePasswordRetypeSerializer(DjoserUserCreatePasswordRetypeSerialize
         )
 
     def validate(self, attrs):
+        attrs = super().validate(attrs)
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             if request.user.is_superuser and not attrs.get("school"):
