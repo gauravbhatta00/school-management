@@ -9,7 +9,7 @@ const NAV = [
     path: '/',
     exact: true,
     label: 'Dashboard',
-    roles: ['admin', 'teacher', 'student'],
+    roles: ['admin', 'teacher', 'staff', 'student'],
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
         <path d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm8-3a3 3 0 100 6 3 3 0 000-6z" />
@@ -19,7 +19,7 @@ const NAV = [
   {
     path: '/students',
     label: 'Students',
-    roles: ['admin', 'teacher'],
+    roles: ['admin', 'teacher', 'staff'],
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
@@ -28,7 +28,7 @@ const NAV = [
   },
   {
     path: '/teachers',
-    label: 'Teachers',
+    label: 'Teacher/Staff',
     roles: ['admin'],
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -70,7 +70,12 @@ const NAV = [
   {
     path: '/fees',
     label: 'Fee Management',
-    roles: ['admin'],
+    roles: ['admin', 'staff'],
+    // Financial tasks are handed out on purpose, not to every staff member:
+    // Accountant gets full fee access, Librarian is scoped server-side to
+    // library fees only. Everyone else (Clerk, Lab Assistant, etc.) never
+    // sees this link — see apps.fees.permissions.
+    staffDesignations: ['Accountant', 'Librarian'],
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
         <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
@@ -79,9 +84,23 @@ const NAV = [
     ),
   },
   {
+    path: '/payroll',
+    label: 'Staff Payroll',
+    roles: ['admin', 'staff'],
+    // Only Accountant tracks/updates payroll alongside admin — see
+    // apps.payroll.permissions.CanManagePayroll.
+    staffDesignations: ['Accountant'],
+    icon: (
+      <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+        <path d="M10.75 10.818v2.614A3.13 3.13 0 0011.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 00-1.138-.432zM8.33 8.62c.053.055.115.11.184.164.208.163.487.316.85.436v-2.03a3.05 3.05 0 00-.822.375c-.404.267-.516.542-.516.735 0 .152.078.313.304.52z" />
+        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5.75a.75.75 0 01.75.75v.316a3.78 3.78 0 011.653.713c.426.286.895.734 1.09 1.286a.75.75 0 01-1.415.502c-.008-.02-.048-.128-.245-.294a2.284 2.284 0 00-.708-.398c-.11-.037-.226-.069-.375-.098v2.09l.628.14c.539.144 1.048.352 1.454.68.44.354.814.876.814 1.532 0 .656-.374 1.178-.814 1.532-.406.328-.915.536-1.454.68l-.628.14v.51a.75.75 0 01-1.5 0v-.398a3.86 3.86 0 01-1.85-.814.75.75 0 111.014-1.106c.14.128.42.294.836.4v-2.15c-.35-.09-.72-.216-1.055-.396-.494-.26-1.02-.68-1.164-1.31a.75.75 0 011.462-.334l.002.006.014.028a1.5 1.5 0 00.365.383 2.6 2.6 0 00.376.222V6.03a.75.75 0 01.75-.78z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+  {
     path: '/calendar',
     label: 'Notices & Calendar',
-    roles: ['admin', 'teacher', 'student'],
+    roles: ['admin', 'teacher', 'staff', 'student'],
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zM18 10H2v6a2 2 0 002 2h12a2 2 0 002-2v-6zm-8 2a1 1 0 000 2h4a1 1 0 100-2h-4z" clipRule="evenodd" />
@@ -137,7 +156,11 @@ export default function Sidebar({ open = false, onClose = () => {} }) {
   const { user, role, logout } = useAuth()
   const navigate = useNavigate()
 
-  const visibleLinks = NAV.filter((n) => n.roles.includes(role))
+  const visibleLinks = NAV.filter((n) => {
+    if (!n.roles.includes(role)) return false
+    if (role === 'staff' && n.staffDesignations && !n.staffDesignations.includes(user?.designation)) return false
+    return true
+  })
 
   const handleLogout = () => {
     logout()

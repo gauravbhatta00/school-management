@@ -15,6 +15,7 @@ from .models import User
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     school_name = serializers.SerializerMethodField()
+    designation = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -25,6 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "full_name",
             "role",
+            "designation",
             "school",
             "school_name",
             "profile_photo",
@@ -38,6 +40,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_school_name(self, obj):
         return obj.school.name if obj.school else None
+
+    def get_designation(self, obj):
+        # Only teacher/staff accounts have a teacher_profile — surfaced here so
+        # the frontend can tailor nav/UI per designation (e.g. a Librarian only
+        # needs the library fee workflow, not the whole Fee Management surface).
+        profile = getattr(obj, "teacher_profile", None)
+        return profile.designation if profile else None
 
 
 def _apply_first_user_bootstrap(validated_data):
@@ -135,7 +144,7 @@ class StudentTeacherPasswordResetSerializer(DjoserSendEmailResetSerializer):
 
     def get_user(self, is_active=True):
         user = super().get_user(is_active=is_active)
-        if user and user.role in [User.Role.STUDENT, User.Role.TEACHER]:
+        if user and user.role in [User.Role.STUDENT, User.Role.TEACHER, User.Role.STAFF]:
             return user
         return None
 
@@ -143,7 +152,7 @@ class StudentTeacherPasswordResetSerializer(DjoserSendEmailResetSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "email", "profile_photo", "is_active"]
+        fields = ["first_name", "last_name", "email", "profile_photo", "is_active", "role"]
 
 
 class UserSelfUpdateSerializer(serializers.ModelSerializer):

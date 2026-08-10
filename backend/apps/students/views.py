@@ -21,7 +21,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from .models import Student
 from .serializers import StudentSerializer, StudentCreateSerializer
 from apps.accounts.models import User
-from apps.accounts.permissions import IsSchoolAdmin, IsAdminOrTeacher
+from apps.accounts.permissions import IsSchoolAdmin, IsAdminOrTeacher, IsStaff, AnyOf
 
 
 def generate_student_password(first_name, last_name, class_name, section, roll_number):
@@ -58,7 +58,9 @@ class StudentViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsSchoolAdmin()]
-        return [IsAuthenticated(), IsAdminOrTeacher()]
+        # Staff (clerks, librarians, etc.) get read-only access — useful for
+        # looking up a student's class/section/roll — but never manage records.
+        return [IsAuthenticated(), AnyOf(IsAdminOrTeacher, IsStaff)]
 
     def perform_create(self, serializer):
         serializer.save(school=self.request.user.school)

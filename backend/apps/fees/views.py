@@ -10,6 +10,7 @@ Fees ViewSet suite:
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -20,22 +21,33 @@ import csv
 
 from .models import FeeStructure, Payment
 from .serializers import FeeStructureSerializer, PaymentSerializer, PayFeeSerializer
-from apps.accounts.permissions import IsSchoolAdmin, IsAdminOrTeacher, IsStudent
+from .permissions import CanAccessFees, CanViewCollectionSummary, fee_category_scope
+from .accrual import amount_due_so_far
+from apps.accounts.permissions import (
+    IsSchoolAdmin,
+    IsAdminOrTeacher,
+    IsStudent,
+    AnyOf,
+)
 from apps.students.models import Student
 
 
 class FeeStructureViewSet(viewsets.ModelViewSet):
     serializer_class = FeeStructureSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["class_name", "academic_year"]
+    filterset_fields = ["class_name", "academic_year", "category"]
 
     def get_queryset(self):
-        return FeeStructure.objects.filter(school=self.request.user.school)
+        queryset = FeeStructure.objects.filter(school=self.request.user.school)
+        scope = fee_category_scope(self.request.user)
+        if scope:
+            queryset = queryset.filter(category=scope)
+        return queryset
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsSchoolAdmin()]
-        return [IsAuthenticated(), IsAdminOrTeacher()]
+        return [IsAuthenticated(), AnyOf(IsAdminOrTeacher, CanAccessFees)]
 
     def perform_create(self, serializer):
         serializer.save(school=self.request.user.school)
@@ -65,25 +77,44 @@ class PaymentViewSet(viewsets.ModelViewSet):
         if self.request.user.role == "student":
             queryset = queryset.filter(student__user=self.request.user)
 
+        scope = fee_category_scope(self.request.user)
+        if scope:
+            queryset = queryset.filter(fee_structure__category=scope)
+
         return queryset
 
     def get_permissions(self):
         if self.action in ["destroy"]:
             return [IsAuthenticated(), IsSchoolAdmin()]
-        if self.action in [
-            "create",
-            "update",
-            "partial_update",
-            "pay",
-            "collection_summary",
-        ]:
-            return [IsAuthenticated(), IsAdminOrTeacher()]
+        # Staff (e.g. front-desk/cashier) can record and look up payments,
+        # same as teachers, but not the school-wide collection dashboard —
+        # that stays limited to people who manage the fee program (plus
+        # Accountant, see CanViewCollectionSummary). Which categories a
+        # given staff member can actually record/see is narrowed further
+        # in get_queryset()/pay() via fee_category_scope().
+        if self.action in ["create", "update", "partial_update", "pay"]:
+            return [IsAuthenticated(), AnyOf(IsAdminOrTeacher, CanAccessFees)]
+        if self.action in ["collection_summary"]:
+            return [IsAuthenticated(), AnyOf(IsAdminOrTeacher, CanViewCollectionSummary)]
         if getattr(self.request.user, "role", None) == "student":
             return [IsAuthenticated(), IsStudent()]
-        return [IsAuthenticated(), IsAdminOrTeacher()]
+        return [IsAuthenticated(), AnyOf(IsAdminOrTeacher, CanAccessFees)]
 
     def perform_create(self, serializer):
+        scope = fee_category_scope(self.request.user)
+        fee_structure = serializer.validated_data.get("fee_structure")
+        if scope and (fee_structure is None or fee_structure.category != scope):
+            raise PermissionDenied(f"Your role can only record {scope} fee payments.")
         serializer.save(school=self.request.user.school, created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        scope = fee_category_scope(self.request.user)
+        fee_structure = serializer.validated_data.get(
+            "fee_structure", serializer.instance.fee_structure
+        )
+        if scope and (fee_structure is None or fee_structure.category != scope):
+            raise PermissionDenied(f"Your role can only record {scope} fee payments.")
+        serializer.save()
 
     def _build_fee_report_rows(self, school, academic_year, class_name="", search=""):
         students_qs = (
@@ -109,12 +140,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 | Q(roll_number__icontains=search)
             )
 
-        fee_map = {
-            f.class_name: float(f.amount)
-            for f in FeeStructure.objects.filter(
-                school=school, academic_year=academic_year
-            )
-        }
+        # A class's required fee is the SUM across every category (tuition,
+        # transport, hostel, ...), not just one — a class can have several
+        # FeeStructure rows (one per category) for the same year. For a
+        # recurring (monthly/quarterly/...) row, only the portion accrued
+        # so far counts — see apps.fees.accrual.
+        fee_map = {}
+        for f in FeeStructure.objects.filter(school=school, academic_year=academic_year):
+            fee_map[f.class_name] = fee_map.get(f.class_name, 0.0) + amount_due_so_far(f)
 
         paid_qs = (
             Payment.objects.filter(
@@ -196,6 +229,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 {"error": "Fee structure not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
+        scope = fee_category_scope(request.user)
+        if scope and fee_structure.category != scope:
+            return Response(
+                {"error": f"Your role can only record {scope} fee payments."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         paid_so_far = (
             Payment.objects.filter(
                 school=school,
@@ -207,7 +247,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
         )
 
         new_total = float(paid_so_far) + float(d["amount"])
-        required = float(fee_structure.amount)
+        # For a recurring fee (monthly/quarterly/...), "required" is only
+        # what has accrued so far, not the whole year — matches how the
+        # payroll month-tracking already works.
+        required = amount_due_so_far(fee_structure)
 
         if new_total >= required:
             pay_status = Payment.Status.PAID
@@ -254,22 +297,43 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 {"error": "You can only access your own fee status."}, status=403
             )
 
-        fee_structure = FeeStructure.objects.filter(
+        # A student can owe several fee categories at once (tuition,
+        # transport, library, ...) — one FeeStructure row per category.
+        structures = FeeStructure.objects.filter(
             school=school, class_name=student.class_name, academic_year=academic_year
-        ).first()
+        )
 
         payments = Payment.objects.filter(
             school=school, student=student, fee_structure__academic_year=academic_year
         )
-        total_paid = (
-            payments.filter(status__in=["paid", "partial"]).aggregate(
-                total=Sum("amount")
-            )["total"]
-            or 0
-        )
+        paid_by_structure = {
+            row["fee_structure_id"]: float(row["total"] or 0)
+            for row in payments.filter(status__in=["paid", "partial"])
+            .values("fee_structure_id")
+            .annotate(total=Sum("amount"))
+        }
 
-        required = float(fee_structure.amount) if fee_structure else 0
-        balance = max(0, required - float(total_paid))
+        by_category = []
+        required = 0.0
+        total_paid = 0.0
+        for fs in structures:
+            fs_required = amount_due_so_far(fs)  # accrued-to-date, not the full year
+            fs_paid = paid_by_structure.get(fs.id, 0.0)
+            required += fs_required
+            total_paid += fs_paid
+            by_category.append(
+                {
+                    "fee_structure_id": fs.id,
+                    "category": fs.category,
+                    "frequency": fs.frequency,
+                    "rate": float(fs.amount),
+                    "required": fs_required,
+                    "paid": fs_paid,
+                    "balance": max(0.0, fs_required - fs_paid),
+                }
+            )
+
+        balance = max(0.0, required - total_paid)
 
         return Response(
             {
@@ -278,9 +342,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 "class_name": student.class_name,
                 "academic_year": academic_year,
                 "fee_required": required,
-                "total_paid": float(total_paid),
+                "total_paid": total_paid,
                 "balance": balance,
                 "is_fully_paid": balance == 0,
+                "by_category": by_category,
                 "payments": PaymentSerializer(
                     payments, many=True, context={"request": request}
                 ).data,

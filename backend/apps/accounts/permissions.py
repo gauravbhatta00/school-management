@@ -44,6 +44,25 @@ class IsStudent(BasePermission):
         )
 
 
+class IsStaff(BasePermission):
+    """Allow access only to non-teaching staff (librarians, clerks, accountants, etc.).
+
+    Deliberately separate from IsTeacher/IsAdminOrTeacher — staff accounts
+    should only reach the specific endpoints they're explicitly granted
+    (e.g. students read-only, fee collection), not the full teacher surface
+    (attendance, exams, subjects, application review).
+    """
+
+    message = "Only staff members can perform this action."
+
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role == "staff"
+        )
+
+
 class IsAdminOrTeacher(BasePermission):
     """Allow admins and teachers (read-heavy endpoints)."""
 

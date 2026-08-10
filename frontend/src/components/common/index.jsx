@@ -194,6 +194,7 @@ export function RoleBadge({ role }) {
   const map = {
     admin:   'badge-purple',
     teacher: 'badge-blue',
+    staff:   'badge-yellow',
     student: 'badge-green',
   }
   return <span className={map[role] ?? 'badge-gray'}>{role}</span>

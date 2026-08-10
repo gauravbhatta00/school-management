@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "apps.applications",
     "apps.exams",
     "apps.fees",
+    "apps.payroll",
     "apps.notices",
     "apps.backups",
 ]

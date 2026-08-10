@@ -17,12 +17,13 @@ import Attendance  from './pages/Attendance'
 import Exams       from './pages/Exams'
 import Subjects    from './pages/Subjects'
 import Fees        from './pages/Fees'
+import Payroll      from './pages/Payroll'
 import CalendarHub from './pages/CalendarHub'
 import Settings    from './pages/Settings'
 
 // ── Protected Route ─────────────────────────────────────────────────────────
-function ProtectedRoute({ children, allowedRoles }) {
-  const { isAuthenticated, isLoading, role } = useAuth()
+function ProtectedRoute({ children, allowedRoles, staffDesignations }) {
+  const { isAuthenticated, isLoading, role, user } = useAuth()
 
   if (isLoading) {
     return (
@@ -37,6 +38,9 @@ function ProtectedRoute({ children, allowedRoles }) {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/" replace />
+  if (staffDesignations && role === 'staff' && !staffDesignations.includes(user?.designation)) {
+    return <Navigate to="/" replace />
+  }
 
   return children
 }
@@ -73,7 +77,7 @@ function AppRoutes() {
         <Route
           path="students"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+            <ProtectedRoute allowedRoles={['admin', 'teacher', 'staff']}>
               <Students />
             </ProtectedRoute>
           }
@@ -118,8 +122,17 @@ function AppRoutes() {
         <Route
           path="fees"
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin', 'staff']} staffDesignations={['Accountant', 'Librarian']}>
               <Fees />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="payroll"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'staff']} staffDesignations={['Accountant']}>
+              <Payroll />
             </ProtectedRoute>
           }
         />
@@ -127,7 +140,7 @@ function AppRoutes() {
         <Route
           path="calendar"
           element={
-            <ProtectedRoute allowedRoles={['admin', 'teacher', 'student']}>
+            <ProtectedRoute allowedRoles={['admin', 'teacher', 'staff', 'student']}>
               <CalendarHub />
             </ProtectedRoute>
           }

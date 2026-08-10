@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    if (!user || !['teacher', 'student'].includes(user.role)) return undefined
+    if (!user || !['teacher', 'staff', 'student'].includes(user.role)) return undefined
 
     let disposed = false
     const seenKey = `${SEEN_EVENT_KEY_PREFIX}:${user.id}:${user.school || 'noschool'}`
@@ -164,6 +164,7 @@ export function AuthProvider({ children }) {
     role: user?.role ?? null,
     isAdmin:   user?.role === 'admin',
     isTeacher: user?.role === 'teacher',
+    isStaff:   user?.role === 'staff',
     isStudent: user?.role === 'student',
     login,
     refreshUser,

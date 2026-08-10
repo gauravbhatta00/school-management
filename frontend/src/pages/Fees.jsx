@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { feeService, studentService } from '../services/api'
 import { Modal, FormField, Spinner, ErrorAlert, FullPageSpinner } from '../components/common'
 import toast from 'react-hot-toast'
+import { useAuth } from '../hooks'
 
 const ACADEMIC_YEAR_OPTIONS = (() => {
   const startYear = new Date().getFullYear()
@@ -12,18 +13,145 @@ const ACADEMIC_YEAR_OPTIONS = (() => {
   })
 })()
 
+const CLASS_OPTIONS = ['8', '9', '10', '11', '12']
+const SECTION_OPTIONS = ['A', 'B', 'C', 'D']
+// Common presets — quick-picks only, not an enforced list. Admin can also
+// type any custom category label (e.g. "Sports Fee", "ID Card Fee") via
+// the "Custom…" option, same pattern as the Teacher/Staff designation field.
+const CATEGORY_OPTIONS = [
+  ['tuition', 'Tuition'], ['library', 'Library'], ['transport', 'Transport'],
+  ['hostel', 'Hostel'], ['exam', 'Examination'], ['other', 'Other'],
+]
+const FREQUENCY_OPTIONS = [
+  ['one_time', 'One-Time'], ['monthly', 'Monthly'], ['quarterly', 'Quarterly'],
+  ['half_yearly', 'Half-Yearly'], ['annual', 'Annual'],
+]
+const FREQUENCY_LABEL = Object.fromEntries(FREQUENCY_OPTIONS)
+// A Librarian's fee duties are scoped to library fees only — enforced
+// server-side too (apps.fees.permissions), this just keeps their UI
+// limited to what they're actually allowed to do.
+const isLibraryScoped = (user) => user?.role === 'staff' && user?.designation === 'Librarian'
+
+// ── Student Picker — direct search + class/section/roll filtering ────────────
+function StudentPicker({ student, onSelect }) {
+  const [search, setSearch]   = useState('')
+  const [klass, setKlass]     = useState('')
+  const [section, setSection] = useState('')
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  const hasQuery = !!(search.trim() || klass || section)
+
+  useEffect(() => {
+    if (student || !hasQuery) { setResults([]); return }
+    setLoading(true)
+    const timer = setTimeout(async () => {
+      try {
+        const params = { page_size: 20 }
+        if (search.trim()) params.search = search.trim()
+        if (klass) params.class_name = klass
+        if (section) params.section = section
+        const { data } = await studentService.list(params)
+        setResults(data.results ?? data)
+      } finally {
+        setLoading(false)
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search, klass, section, student, hasQuery])
+
+  if (student) {
+    return (
+      <div
+        className="flex items-center justify-between rounded-xl px-3 py-2"
+        style={{ background: 'var(--bg-hover)', border: '1px solid var(--border)' }}
+      >
+        <div>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{student.full_name}</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Class {student.class_name}-{student.section} · Roll {student.roll_number}
+          </p>
+        </div>
+        <button type="button" className="btn-ghost text-xs" onClick={() => onSelect(null)}>Change</button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-2">
+        <input
+          className="input col-span-3 sm:col-span-1"
+          placeholder="Search name or roll no."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select className="select" value={klass} onChange={(e) => setKlass(e.target.value)}>
+          <option value="">All Classes</option>
+          {CLASS_OPTIONS.map(c => <option key={c} value={c}>Class {c}</option>)}
+        </select>
+        <select className="select" value={section} onChange={(e) => setSection(e.target.value)}>
+          <option value="">All Sections</option>
+          {SECTION_OPTIONS.map(s => <option key={s} value={s}>Section {s}</option>)}
+        </select>
+      </div>
+      {hasQuery ? (
+        <div className="rounded-xl max-h-48 overflow-y-auto" style={{ border: '1px solid var(--border)' }}>
+          {loading ? (
+            <div className="flex justify-center py-4"><Spinner size="sm" /></div>
+          ) : results.length === 0 ? (
+            <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>No students found</p>
+          ) : (
+            results.map(s => (
+              <button
+                type="button"
+                key={s.id}
+                onClick={() => onSelect(s)}
+                className="w-full text-left px-3 py-2 text-sm transition-colors"
+                style={{ borderBottom: '1px solid var(--border)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <span style={{ color: 'var(--text-primary)' }}>{s.full_name}</span>
+                <span className="ml-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Class {s.class_name}-{s.section} · Roll {s.roll_number}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      ) : (
+        <p className="text-xs text-center py-3" style={{ color: 'var(--text-muted)' }}>
+          Type a name/roll number or choose a class/section to search
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function Fees() {
+  const { user } = useAuth()
+  const scoped = isLibraryScoped(user)
   const [tab, setTab] = useState('payments')  // 'payments' | 'tracker' | 'structures' | 'summary'
+
+  // A Librarian only needs to record/see library-fee payments — the
+  // school-wide tracker, structure editor, and collection summary are
+  // outside their job, so those tabs simply aren't offered to them.
+  const TABS = scoped
+    ? [['payments', 'Library Fee Payments']]
+    : [['payments', 'Payments'], ['tracker', 'Student Fee Tracker'], ['structures', 'Fee Structures'], ['summary', 'Summary']]
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Fee Management</h1>
-          <p className="page-subtitle">Track payments, structures and collections</p>
+          <h1 className="page-title">{scoped ? 'Library Fees' : 'Fee Management'}</h1>
+          <p className="page-subtitle">
+            {scoped ? 'Record and track library fee payments' : 'Track payments, structures and collections'}
+          </p>
         </div>
         <div className="flex rounded-xl p-1" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          {[['payments', 'Payments'], ['tracker', 'Student Fee Tracker'], ['structures', 'Fee Structures'], ['summary', 'Summary']].map(([t, l]) => (
+          {TABS.map(([t, l]) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -40,9 +168,9 @@ export default function Fees() {
       </div>
 
       {tab === 'payments'   && <PaymentsTab />}
-      {tab === 'tracker'    && <TrackerTab />}
-      {tab === 'structures' && <StructuresTab />}
-      {tab === 'summary'    && <SummaryTab />}
+      {!scoped && tab === 'tracker'    && <TrackerTab />}
+      {!scoped && tab === 'structures' && <StructuresTab />}
+      {!scoped && tab === 'summary'    && <SummaryTab />}
     </div>
   )
 }
@@ -431,7 +559,9 @@ function PaymentsTab() {
 
 // ── Payment modal ─────────────────────────────────────────────────────────────
 function PaymentModal({ open, onClose, onSuccess }) {
-  const [students,    setStudents]    = useState([])
+  const { user } = useAuth()
+  const scoped = isLibraryScoped(user)
+  const [selectedStudent, setSelectedStudent] = useState(null)
   const [structures,  setStructures]  = useState([])
   const [form,        setForm]        = useState({
     student_id: '', fee_structure_id: '', amount: '',
@@ -442,16 +572,24 @@ function PaymentModal({ open, onClose, onSuccess }) {
 
   useEffect(() => {
     if (!open) return
-    studentService.list({ page_size: 200 }).then(({ data }) => setStudents(data.results ?? data))
-    feeService.structures().then(({ data }) => setStructures(data.results ?? data))
+    const params = scoped ? { category: 'library' } : {}
+    feeService.structures(params).then(({ data }) => setStructures(data.results ?? data))
+    setSelectedStudent(null)
     setForm({ student_id:'', fee_structure_id:'', amount:'', payment_method:'cash', transaction_id:'', remarks:'' })
     setError('')
-  }, [open])
+  }, [open, scoped])
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
+  const selectStudent = (s) => {
+    setSelectedStudent(s)
+    set('student_id', s ? String(s.id) : '')
+  }
+
   const submit = async (e) => {
-    e.preventDefault(); setSaving(true); setError('')
+    e.preventDefault(); setError('')
+    if (!form.student_id) { setError('Please select a student'); return }
+    setSaving(true)
     try {
       await feeService.pay({ ...form, student_id: +form.student_id, fee_structure_id: +form.fee_structure_id, amount: +form.amount })
       toast.success('Payment recorded!'); onSuccess()
@@ -465,20 +603,23 @@ function PaymentModal({ open, onClose, onSuccess }) {
       <ErrorAlert message={error} />
       <form onSubmit={submit} className="space-y-4">
         <FormField label="Student">
-          <select className="select" required value={form.student_id} onChange={e => set('student_id', e.target.value)}>
-            <option value="">Select Student</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.full_name} — Class {s.class_name}</option>)}
-          </select>
+          <StudentPicker student={selectedStudent} onSelect={selectStudent} />
         </FormField>
         <FormField label="Fee Structure">
           <select className="select" required value={form.fee_structure_id} onChange={e => set('fee_structure_id', e.target.value)}>
             <option value="">Select Fee Structure</option>
             {structures.map(fs => (
               <option key={fs.id} value={fs.id}>
-                Class {fs.class_name} — ₹{Number(fs.amount).toLocaleString()} ({fs.academic_year})
+                Class {fs.class_name} — {fs.category} — ₹{Number(fs.amount).toLocaleString()}
+                {fs.frequency && fs.frequency !== 'one_time' && fs.frequency !== 'annual' ? `/${FREQUENCY_LABEL[fs.frequency]?.toLowerCase()}` : ''} ({fs.academic_year})
               </option>
             ))}
           </select>
+          {scoped && structures.length === 0 && (
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+              No library fee structures yet — ask an admin to add one.
+            </p>
+          )}
         </FormField>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount (₹)">
@@ -509,12 +650,19 @@ function PaymentModal({ open, onClose, onSuccess }) {
 
 // ── Structures Tab ────────────────────────────────────────────────────────────
 function StructuresTab() {
-  const [list,    setList]    = useState([])
-  const [loading, setLoading] = useState(true)
-  const [modal,   setModal]   = useState(false)
-  const [form,    setForm]    = useState({ class_name: '10', amount: '', academic_year: ACADEMIC_YEAR_OPTIONS[0], description: '' })
-  const [saving,  setSaving]  = useState(false)
-  const [error,   setError]   = useState('')
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
+  const emptyForm = { class_name: '10', category: 'tuition', frequency: 'annual', amount: '', academic_year: ACADEMIC_YEAR_OPTIONS[0], due_date: '', description: '' }
+  const [list,      setList]      = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [modal,     setModal]     = useState(false)
+  const [editItem,  setEditItem]  = useState(null)
+  const [delItem,   setDelItem]   = useState(null)
+  const [form,      setForm]      = useState(emptyForm)
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState('')
+
+  const isPresetCategory = CATEGORY_OPTIONS.some(([v]) => v === form.category)
 
   const load = async () => {
     setLoading(true)
@@ -523,21 +671,50 @@ function StructuresTab() {
   }
   useEffect(() => { load() }, [])
 
+  const openAdd = () => { setEditItem(null); setForm(emptyForm); setError(''); setModal(true) }
+  const openEdit = (fs) => {
+    setEditItem(fs)
+    setForm({
+      class_name: fs.class_name, category: fs.category, frequency: fs.frequency || 'annual', amount: String(fs.amount),
+      academic_year: fs.academic_year, due_date: fs.due_date || '', description: fs.description || '',
+    })
+    setError(''); setModal(true)
+  }
+
   const submit = async (e) => {
     e.preventDefault(); setSaving(true); setError('')
+    const payload = { ...form, amount: +form.amount, due_date: form.due_date || null }
     try {
-      await feeService.createStructure({ ...form, amount: +form.amount })
-      toast.success('Fee structure created'); setModal(false); load()
+      if (editItem) {
+        await feeService.updateStructure(editItem.id, payload)
+        toast.success('Fee structure updated')
+      } else {
+        await feeService.createStructure(payload)
+        toast.success('Fee structure created')
+      }
+      setModal(false); load()
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed')
+      setError(err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || 'Failed')
     } finally { setSaving(false) }
+  }
+
+  const confirmDelete = async () => {
+    if (!delItem) return
+    try {
+      await feeService.deleteStructure(delItem.id)
+      toast.success('Fee structure deleted'); setDelItem(null); load()
+    } catch {
+      toast.error('Failed to delete — it may already have payments recorded against it')
+    }
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <button className="btn-primary" onClick={() => setModal(true)}>+ Add Structure</button>
-      </div>
+      {isAdmin && (
+        <div className="flex justify-end">
+          <button className="btn-primary" onClick={openAdd}>+ Add Structure</button>
+        </div>
+      )}
       {loading ? <FullPageSpinner /> : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {list.map(fs => (
@@ -546,14 +723,26 @@ function StructuresTab() {
                 <div>
                   <p className="text-2xl font-bold" style={{ fontFamily: 'Inter', color: 'var(--text-primary)' }}>
                     ₹{Number(fs.amount).toLocaleString()}
+                    {fs.frequency && fs.frequency !== 'one_time' && fs.frequency !== 'annual' && (
+                      <span className="text-sm font-normal" style={{ color: 'var(--text-muted)' }}> /{FREQUENCY_LABEL[fs.frequency]?.toLowerCase()}</span>
+                    )}
                   </p>
                   <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Class {fs.class_name}</p>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{fs.academic_year}</p>
                 </div>
-                <span className="badge-blue">Annual</span>
+                <div className="flex flex-col gap-1 items-end">
+                  <span className="badge-blue">{fs.category}</span>
+                  <span className="badge-gray text-xs">{FREQUENCY_LABEL[fs.frequency] || 'Annual'}</span>
+                </div>
               </div>
               {fs.due_date && (
                 <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>Due: {fs.due_date}</p>
+              )}
+              {isAdmin && (
+                <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+                  <button className="btn-ghost text-xs flex-1" onClick={() => openEdit(fs)}>Edit</button>
+                  <button className="btn-ghost text-xs flex-1 text-red-400" onClick={() => setDelItem(fs)}>Delete</button>
+                </div>
               )}
             </div>
           ))}
@@ -563,7 +752,7 @@ function StructuresTab() {
         </div>
       )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title="Add Fee Structure">
+      <Modal open={modal} onClose={() => setModal(false)} title={editItem ? 'Edit Fee Structure' : 'Add Fee Structure'}>
         <ErrorAlert message={error} />
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -572,26 +761,68 @@ function StructuresTab() {
                 {['8','9','10','11','12'].map(c => <option key={c} value={c}>Class {c}</option>)}
               </select>
             </FormField>
-            <FormField label="Amount (₹)">
+            <FormField label={form.frequency === 'monthly' || form.frequency === 'quarterly' || form.frequency === 'half_yearly' ? `Amount per ${FREQUENCY_LABEL[form.frequency].toLowerCase()} period (₹)` : 'Amount (₹)'}>
               <input className="input" type="number" min="0" required value={form.amount}
                 onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
             </FormField>
           </div>
-          <FormField label="Academic Year">
-            <select className="select" value={form.academic_year}
-              onChange={e => setForm(f => ({ ...f, academic_year: e.target.value }))}>
-              {ACADEMIC_YEAR_OPTIONS.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Category">
+              <select
+                className="select"
+                value={isPresetCategory ? form.category : 'custom'}
+                onChange={e => setForm(f => ({ ...f, category: e.target.value === 'custom' ? '' : e.target.value }))}
+              >
+                {CATEGORY_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                <option value="custom">Custom…</option>
+              </select>
+              {!isPresetCategory && (
+                <input className="input mt-2" placeholder="e.g. Sports Fee, ID Card Fee" required
+                  value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
+              )}
+            </FormField>
+            <FormField label="Frequency">
+              <select className="select" value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value }))}>
+                {FREQUENCY_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </FormField>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Academic Year">
+              <select className="select" value={form.academic_year}
+                onChange={e => setForm(f => ({ ...f, academic_year: e.target.value }))}>
+                {ACADEMIC_YEAR_OPTIONS.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label="Due Date (optional)">
+              <input className="input" type="date" value={form.due_date}
+                onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
+            </FormField>
+          </div>
+          <FormField label="Description (optional)">
+            <input className="input" placeholder="e.g. Winter term transport fee" value={form.description}
+              onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </FormField>
           <div className="flex gap-3 justify-end">
             <button type="button" className="btn-ghost" onClick={() => setModal(false)}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={saving}>
-              {saving ? <Spinner size="sm" /> : 'Create'}
+              {saving ? <Spinner size="sm" /> : (editItem ? 'Save Changes' : 'Create')}
             </button>
           </div>
         </form>
+      </Modal>
+
+      <Modal open={!!delItem} onClose={() => setDelItem(null)} title="Delete Fee Structure" width="max-w-sm">
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          Delete the {delItem?.category} fee structure for Class {delItem?.class_name} ({delItem?.academic_year})?
+          Existing payments against it are kept but unlinked.
+        </p>
+        <div className="flex gap-3 justify-end mt-5">
+          <button className="btn-ghost" onClick={() => setDelItem(null)}>Cancel</button>
+          <button className="btn-primary" style={{ background: '#ef4444' }} onClick={confirmDelete}>Delete</button>
+        </div>
       </Modal>
     </div>
   )

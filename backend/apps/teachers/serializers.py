@@ -28,8 +28,10 @@ class TeacherSerializer(serializers.ModelSerializer):
             "email",
             "subjects",
             "subjects_detail",
+            "designation",
             "qualification",
             "experience_years",
+            "basic_salary",
             "joining_date",
             "created_at",
         ]
@@ -58,8 +60,10 @@ class TeacherCreateSerializer(serializers.ModelSerializer):
         fields = [
             "user",
             "subjects",
+            "designation",
             "qualification",
             "experience_years",
+            "basic_salary",
             "first_name",
             "last_name",
             "email",
@@ -74,14 +78,18 @@ class TeacherCreateSerializer(serializers.ModelSerializer):
 
         if value.school != request.user.school:
             raise serializers.ValidationError("User does not belong to your school.")
-        if value.role != "teacher":
+        # Teacher records also represent non-teaching staff (librarians,
+        # clerks, accountants, ...), whose accounts are created with
+        # role="staff" so they don't inherit teacher-only permissions
+        # (attendance, exams, application review). Only normalize the role
+        # when it's neither of those — e.g. a stale/default value.
+        if value.role not in ("teacher", "staff"):
             from apps.students.models import Student
 
             if Student.objects.filter(user=value).exists():
                 raise serializers.ValidationError(
                     "User already has a student profile and cannot be registered as teacher."
                 )
-            # If role was saved with a fallback/default, normalize it for this flow.
             value.role = "teacher"
             value.save(update_fields=["role"])
         return value

@@ -10,6 +10,8 @@ class FeeStructureSerializer(serializers.ModelSerializer):
             "id",
             "school",
             "class_name",
+            "category",
+            "frequency",
             "amount",
             "academic_year",
             "due_date",

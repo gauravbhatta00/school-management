@@ -14,10 +14,39 @@ from django.core.validators import MinValueValidator
 
 
 class FeeStructure(models.Model):
+    # Common presets — shown as quick-picks in the UI and used by
+    # apps.fees.permissions for designation scoping (e.g. Librarian ->
+    # "library"). Deliberately NOT enforced as a DB/serializer choice
+    # constraint: a school can still type any custom category label
+    # (e.g. "Sports Fee", "ID Card Fee") and it's stored as-is.
+    class Category(models.TextChoices):
+        TUITION = "tuition", "Tuition"
+        LIBRARY = "library", "Library"
+        TRANSPORT = "transport", "Transport"
+        HOSTEL = "hostel", "Hostel"
+        EXAM = "exam", "Examination"
+        OTHER = "other", "Other"
+
+    class Frequency(models.TextChoices):
+        ONE_TIME = "one_time", "One-Time"
+        MONTHLY = "monthly", "Monthly"
+        QUARTERLY = "quarterly", "Quarterly"
+        HALF_YEARLY = "half_yearly", "Half-Yearly"
+        ANNUAL = "annual", "Annual"
+
     school = models.ForeignKey(
         "schools.School", on_delete=models.CASCADE, related_name="fee_structures"
     )
     class_name = models.CharField(max_length=20)
+    # Free-text on purpose — see the Category docstring above.
+    category = models.CharField(max_length=50, default=Category.TUITION)
+    # How often this fee recurs. `amount` is the PER-PERIOD rate (e.g. the
+    # monthly installment), not a lump annual total — see
+    # apps.fees.accrual.amount_due_so_far() for how this turns into "how
+    # much is owed as of today".
+    frequency = models.CharField(
+        max_length=20, choices=Frequency.choices, default=Frequency.ANNUAL
+    )
     amount = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
     )
@@ -28,10 +57,10 @@ class FeeStructure(models.Model):
 
     class Meta:
         db_table = "fees_feestructure"
-        unique_together = [("school", "class_name", "academic_year")]
+        unique_together = [("school", "class_name", "academic_year", "category")]
 
     def __str__(self):
-        return f"{self.class_name} — ₹{self.amount} ({self.academic_year})"
+        return f"{self.class_name} — {self.category} — ₹{self.amount}/{self.frequency} ({self.academic_year})"
 
 
 class Payment(models.Model):

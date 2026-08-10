@@ -6,6 +6,11 @@ import toast from 'react-hot-toast'
 import { useAuth } from '../hooks'
 import { toMediaUrl } from '../utils/media'
 
+const DESIGNATIONS = [
+  'Teacher', 'Librarian', 'Accountant', 'Lab Assistant',
+  'Administrative Staff', 'Principal', 'Vice Principal', 'Clerk', 'Support Staff',
+]
+
 export default function Teachers() {
   const { user } = useAuth()
   const [searchParams] = useSearchParams()
@@ -39,6 +44,7 @@ export default function Teachers() {
           full_name: u.full_name,
           email: u.email,
           subjects_detail: [],
+          designation: '',
           qualification: '',
           experience_years: null,
           is_profile_missing: true,
@@ -115,6 +121,10 @@ export default function Teachers() {
       ),
     },
     {
+      key: 'designation', label: 'Designation',
+      render: (r) => r.designation || <span style={{ color: 'var(--text-muted)' }}>—</span>,
+    },
+    {
       key: 'subjects',
       label: 'Subjects',
       render: (r) => {
@@ -139,6 +149,12 @@ export default function Teachers() {
         r.experience_years == null
           ? <span style={{ color: 'var(--text-muted)' }}>—</span>
           : `${r.experience_years} yr${r.experience_years !== 1 ? 's' : ''}`
+      ) },
+    { key: 'basic_salary', label: 'Basic Salary',
+      render: (r) => (
+        r.basic_salary == null
+          ? <span style={{ color: 'var(--text-muted)' }}>—</span>
+          : `₹${Number(r.basic_salary).toLocaleString()}`
       ) },
     {
       key: 'actions', label: 'Actions',
@@ -202,7 +218,7 @@ export default function Teachers() {
 function TeacherModal({ open, onClose, initial, prefillUser, schoolId, onSuccess }) {
   const def = () => ({
     email: '', first_name: '', last_name: '', password: 'Teacher@123',
-    subjects: [], qualification: '', experience_years: 0,
+    subjects: [], designation: 'Teacher', qualification: '', experience_years: 0, basic_salary: 0,
     profile_photo: null,
   })
   const [form,     setForm]     = useState(def())
@@ -218,8 +234,10 @@ function TeacherModal({ open, onClose, initial, prefillUser, schoolId, onSuccess
       last_name: initial.user_detail?.last_name || '',
       email: initial.user_detail?.email || initial.email || '',
       subjects:         initial.subjects          || [],
+      designation:      initial.designation       || 'Teacher',
       qualification:    initial.qualification     || '',
       experience_years: initial.experience_years  || 0,
+      basic_salary:     initial.basic_salary      || 0,
       profile_photo: null,
     } : def())
     setError('')
@@ -256,32 +274,44 @@ function TeacherModal({ open, onClose, initial, prefillUser, schoolId, onSuccess
     e.preventDefault()
     setLoading(true)
     setError('')
+    // A "Teacher" designation gets the full teacher role (attendance, exams,
+    // application review); every other designation (Librarian, Clerk, ...)
+    // gets the more limited "staff" role instead.
+    const role = form.designation === 'Teacher' ? 'teacher' : 'staff'
     try {
       if (initial) {
         const payload = new FormData()
         payload.append('first_name', form.first_name)
         payload.append('last_name', form.last_name)
         payload.append('email', form.email)
+        payload.append('designation', form.designation)
         payload.append('qualification', form.qualification)
         payload.append('experience_years', String(form.experience_years ?? 0))
+        payload.append('basic_salary', String(form.basic_salary ?? 0))
         form.subjects.forEach((id) => payload.append('subjects', String(id)))
         if (form.profile_photo) payload.append('profile_photo', form.profile_photo)
 
         await teacherService.update(initial.id, payload)
+        // Keep portal access in sync if the designation moved between
+        // "Teacher" and a staff role (e.g. promoted, or reassigned).
+        await userService.update(initial.user, { role })
         toast.success('Teacher updated')
       } else {
         let userId = prefillUser?.id
         if (!userId) {
           const { data: u } = await userService.create({
             email: form.email, first_name: form.first_name, last_name: form.last_name,
-            password: form.password, re_password: form.password, role: 'teacher',
+            password: form.password, re_password: form.password, role,
             school: schoolId,
           })
           userId = u.id
+        } else {
+          await userService.update(userId, { role })
         }
         await teacherService.create({
-          user: userId, subjects: form.subjects,
+          user: userId, subjects: form.subjects, designation: form.designation,
           qualification: form.qualification, experience_years: form.experience_years,
+          basic_salary: form.basic_salary,
         })
         toast.success(prefillUser ? 'Teacher profile completed' : 'Teacher added')
       }
@@ -348,6 +378,26 @@ function TeacherModal({ open, onClose, initial, prefillUser, schoolId, onSuccess
           </>
         )}
         
+        <FormField label="Designation">
+          <select
+            className="select"
+            value={DESIGNATIONS.includes(form.designation) ? form.designation : 'Other'}
+            onChange={e => set('designation', e.target.value === 'Other' ? '' : e.target.value)}
+          >
+            {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
+            <option value="Other">Other</option>
+          </select>
+          {!DESIGNATIONS.includes(form.designation) && (
+            <input
+              className="input mt-2"
+              placeholder="Enter designation (e.g. Peon, Receptionist)"
+              value={form.designation}
+              onChange={e => set('designation', e.target.value)}
+              required
+            />
+          )}
+        </FormField>
+
         <FormField label="Subjects (Select one or more)">
           <div className="space-y-2 p-3 rounded-lg" style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border)' }}>
             {fetchingSubjects ? (
@@ -379,6 +429,9 @@ function TeacherModal({ open, onClose, initial, prefillUser, schoolId, onSuccess
             <input className="input" type="number" min="0" value={form.experience_years} onChange={e => set('experience_years', +e.target.value)} />
           </FormField>
         </div>
+        <FormField label="Basic Salary (₹ / month)">
+          <input className="input" type="number" min="0" step="0.01" value={form.basic_salary} onChange={e => set('basic_salary', +e.target.value)} />
+        </FormField>
         <div className="flex gap-3 justify-end pt-1">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn-primary" disabled={loading}>

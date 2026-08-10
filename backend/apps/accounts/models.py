@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
         TEACHER = "teacher", "Teacher"
+        STAFF = "staff", "Staff"
         STUDENT = "student", "Student"
 
     # Tenant FK — nullable only for superusers who span all schools
@@ -92,6 +93,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_teacher(self):
         return self.role == self.Role.TEACHER
+
+    @property
+    def is_staff_member(self):
+        return self.role == self.Role.STAFF
 
     @property
     def is_student(self):

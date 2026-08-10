@@ -8,17 +8,19 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 from .models import Teacher
 from .serializers import TeacherSerializer, TeacherCreateSerializer, SubjectSerializer
-from apps.accounts.permissions import IsSchoolAdmin, IsAdminOrTeacher
+from apps.accounts.permissions import IsSchoolAdmin, IsAdminOrTeacher, AnyOf
+from apps.payroll.permissions import CanManagePayroll
 from apps.exams.models import Subject
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["subjects"]
+    filterset_fields = ["subjects", "designation"]
     search_fields = [
         "user__first_name",
         "user__last_name",
+        "designation",
         "subjects__name",
         "subjects__code",
     ]
@@ -40,7 +42,10 @@ class TeacherViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsSchoolAdmin()]
-        return [IsAuthenticated(), IsAdminOrTeacher()]
+        # Accountant needs to look up/search teacher & staff records to record
+        # salary payments against them (the staff picker on the Payroll page)
+        # — see apps.payroll.permissions.CanManagePayroll.
+        return [IsAuthenticated(), AnyOf(IsAdminOrTeacher, CanManagePayroll)]
 
     def perform_create(self, serializer):
         serializer.save(school=self.request.user.school)

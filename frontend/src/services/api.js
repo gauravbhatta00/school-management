@@ -217,6 +217,8 @@ export const resultService = {
 export const feeService = {
   structures:        (params) => api.get('/api/fee-structures/', { params }),
   createStructure:   (data)   => api.post('/api/fee-structures/', data),
+  updateStructure:   (id, d)  => api.patch(`/api/fee-structures/${id}/`, d),
+  deleteStructure:   (id)     => api.delete(`/api/fee-structures/${id}/`),
   payments:          (params) => api.get('/api/payments/', { params }),
   pay:               (data)   => api.post('/api/payments/pay/', data),
   studentStatus:     (params) => api.get('/api/payments/student-status/', { params }),
@@ -227,6 +229,13 @@ export const feeService = {
       params: { ...params, export: 'csv' },
       responseType: 'blob',
     }),
+}
+
+export const payrollService = {
+  payments:        (params) => api.get('/api/salary-payments/', { params }),
+  pay:              (data)   => api.post('/api/salary-payments/pay/', data),
+  teacherStatus:    (params) => api.get('/api/salary-payments/teacher-status/', { params }),
+  payrollSummary:   (params) => api.get('/api/salary-payments/payroll-summary/', { params }),
 }
 
 export const communicationService = {
